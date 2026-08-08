@@ -79,7 +79,7 @@ export default function ProductDetailClient({ id }) {
   const whatsappMessage = encodeURIComponent(
   `Hi ${product.seller?.UserName || 'there'}, I'm interested in your listing "${product.title}" on Zuno for ${formattedPrice}. Is it still available?`
 );
-  const whatsappUrl = `https://wa.me/${sanitizedPhone}?text=${whatsappMessage}`;
+  const whatsappUrl = `https://wa.me/+91${sanitizedPhone}?text=${whatsappMessage}`;
 
   const statusUpper = product.status?.toUpperCase() || 'AVAILABLE';
 

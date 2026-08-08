@@ -16,7 +16,7 @@ export function getOtpEmailTemplate(otp, userName) {
                 <tr>
                   <td align="left" style="padding-bottom: 20px;">
                     <span style="background-color: #18181b; color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; display: inline-block;">
-                      CampusMarket 🎓
+                      Zuno 🎓
                     </span>
                   </td>
                 </tr>
@@ -80,7 +80,7 @@ export function getResetPasswordEmailTemplate(otp, userName) {
                 <tr>
                   <td align="left" style="padding-bottom: 20px;">
                     <span style="background-color: #18181b; color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; display: inline-block;">
-                      CampusVibe Security 🔑
+                      Zuno Security 🔑
                     </span>
                   </td>
                 </tr>
