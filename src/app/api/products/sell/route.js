@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import z from 'zod';
-import sharp from 'sharp';
-import connectDB from '@/lib/db'; // Your MongoDB connection logic
+import connectDB from '@/lib/db';
 import Product from '@/models/product.model';
 import { authorizeRequest } from '@/lib/middleware';
 import { uploadToImageKit } from '@/lib/imagekit';
@@ -9,27 +8,27 @@ import { uploadToImageKit } from '@/lib/imagekit';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-// 1. Define Zod Validation Schema
 const SellProductSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters').max(100),
-  description: z.string().min(10, 'Description must be at least 10 characters').max(1000),
-  price: z.coerce.number().min(0, 'Price must be greater than or equal to 0'),
+  title: z.string().min(3).max(100),
+  description: z.string().min(10).max(1000),
+  price: z.coerce.number().min(0),
   isNegotiable: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
   category: z.enum(['Books', 'Electronics', 'Dorm', 'Fashion', 'Other']),
   condition: z.enum(['New', 'Like New', 'Good', 'Fair']),
-  contactPhone: z.string().min(8, 'Provide a valid phone or WhatsApp number').max(20),
+  contactPhone: z.string().min(8).max(20),
 });
 
 export async function POST(request) {
   let stage = 'authorization';
 
   try {
-    // Step 1: Authorization Check via Middleware
+    // 1. Authorization
     const { user, errorResponse } = authorizeRequest(request);
     if (errorResponse) {
       return NextResponse.json({ error: errorResponse.error }, { status: errorResponse.status });
     }
 
+    // 2. Form Data Parsing
     stage = 'form-data parsing';
     const formData = await request.formData();
     const rawData = {
@@ -44,6 +43,7 @@ export async function POST(request) {
 
     const imageFile = formData.get('image');
 
+    // 3. Validation
     stage = 'input validation';
     if (!imageFile || typeof imageFile === 'string') {
       return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
@@ -57,27 +57,23 @@ export async function POST(request) {
       );
     }
 
-    stage = 'image processing';
+    // 4. Convert File directly to Buffer (No Sharp required)
+    stage = 'image buffer extraction';
     const arrayBuffer = await imageFile.arrayBuffer();
-    const inputBuffer = Buffer.from(arrayBuffer);
+    const rawBuffer = Buffer.from(arrayBuffer);
+    const fileName = `${Date.now()}_${imageFile.name || 'product.webp'}`;
 
-    // Compress: Max width 1200px, convert to WebP format, quality 80%
-    const compressedImageBuffer = await sharp(inputBuffer)
-      .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 80 })
-      .toBuffer();
-
-    const fileName = `${Date.now()}_${imageFile.name.split('.')[0]}.webp`;
-
+    // 5. ImageKit Upload
     stage = 'ImageKit upload';
-    const imageUrl = await uploadToImageKit(compressedImageBuffer, fileName, 'campusmarket/products');
+    const imageUrl = await uploadToImageKit(rawBuffer, fileName, 'campusmarket/products');
 
+    // 6. Database Save
     stage = 'MongoDB save';
     await connectDB();
     const newProduct = await Product.create({
       ...validatedData.data,
       imageUrl,
-      seller: user.id || user._id, // Extracts user payload from decoded JWT middleware
+      seller: user.id || user._id,
     });
 
     return NextResponse.json(
@@ -87,7 +83,7 @@ export async function POST(request) {
   } catch (error) {
     console.error(`Error in /api/products/sell during ${stage}:`, error);
     return NextResponse.json(
-      { error: `Unable to publish listing during ${stage}. Check the server configuration and logs.` },
+      { error: `Unable to publish listing during ${stage}: ${error.message}` },
       { status: 500 }
     );
   }

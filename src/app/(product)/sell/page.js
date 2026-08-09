@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import imageCompression from 'browser-image-compression';
 import api from '@/lib/axios';
 
 const CATEGORIES = ['Books', 'Electronics', 'Dorm', 'Fashion', 'Other'];
@@ -25,6 +26,7 @@ export default function SellPage() {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [compressing, setCompressing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
@@ -42,8 +44,8 @@ export default function SellPage() {
     }
   };
 
-  // File Processing Handler
-  const processImageFile = (file) => {
+  // Client-Side Image Compression & File Processing
+  const processImageFile = async (file) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
@@ -51,15 +53,33 @@ export default function SellPage() {
       return;
     }
 
-    // 10MB client check prior to upload
-    if (file.size > 10 * 1024 * 1024) {
-      setError('File size exceeds the 10MB limit.');
-      return;
-    }
-
     setError('');
-    setSelectedFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    setCompressing(true);
+
+    const options = {
+      maxSizeMB: 0.8,           // Compress target down to ~800KB max
+      maxWidthOrHeight: 1200,   // Downscale to 1200px max dimension
+      useWebWorker: true,       // Run compression in multi-threaded Web Worker
+      fileType: 'image/webp',   // Output modern WebP format
+    };
+
+    try {
+      // 1. Compress raw image in browser memory
+      const compressedFile = await imageCompression(file, options);
+
+      // 2. Set compressed file object
+      setSelectedFile(compressedFile);
+
+      // 3. Update preview URL
+      setImagePreview(URL.createObjectURL(compressedFile));
+    } catch (err) {
+      console.error('Client-side image compression failed:', err);
+      // Fallback: Use original file if compression fails
+      setSelectedFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    } finally {
+      setCompressing(false);
+    }
   };
 
   const handleDrag = useCallback((e) => {
@@ -125,7 +145,7 @@ export default function SellPage() {
     try {
       // Build Multipart Form Data payload
       const body = new FormData();
-      body.append('image', selectedFile);
+      body.append('image', selectedFile, selectedFile.name || 'product.webp');
       body.append('title', formData.title.trim());
       body.append('description', formData.description.trim());
       body.append('price', formData.price);
@@ -252,7 +272,12 @@ export default function SellPage() {
                 className={`border-2 border-dashed rounded-2xl p-6 bg-zinc-50/50 text-center flex flex-col items-center justify-center min-h-[340px] relative transition-all ${dragActive ? 'border-emerald-700 bg-emerald-50/30 scale-[1.01]' : 'border-emerald-800/20'
                   }`}
               >
-                {imagePreview ? (
+                {compressing ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 border-3 border-emerald-800 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs font-bold text-emerald-800">Optimizing image...</p>
+                  </div>
+                ) : imagePreview ? (
                   <div className="relative w-full h-64 rounded-xl overflow-hidden border border-zinc-200">
                     <img src={imagePreview} alt="Product Preview" className="w-full h-full object-cover" />
                     <button
@@ -285,7 +310,7 @@ export default function SellPage() {
                     </button>
 
                     <span className="text-[11px] text-zinc-400 leading-relaxed font-medium">
-                      JPG, PNG, WEBP up to 10MB
+                      JPG, PNG, WEBP (auto-compressed on select)
                     </span>
                   </>
                 )}
@@ -443,10 +468,16 @@ export default function SellPage() {
               <div className="pt-2 flex justify-end">
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || compressing}
                   className="bg-[#2D5A46] hover:bg-[#234737] text-white font-bold text-xs px-8 py-3.5 rounded-2xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  <span>{loading ? 'Processing & Uploading...' : 'Publish Listing'}</span>
+                  <span>
+                    {compressing
+                      ? 'Optimizing image...'
+                      : loading
+                      ? 'Processing & Uploading...'
+                      : 'Publish Listing'}
+                  </span>
                   <svg className="w-4 h-4 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
