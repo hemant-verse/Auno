@@ -8,9 +8,23 @@
     "start": "next start",
     "lint": "eslint"
   },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "current",
+        "linux"
+      ],
+      "cpu": [
+        "current",
+        "x64"
+      ]
+    }
+  },
   "dependencies": {
+    "@img/sharp-linux-x64": "^0.35.3",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.2",
+    "@vercel/analytics": "^2.0.1",
     "axios": "^1.18.1",
     "bcryptjs": "^3.0.3",
     "crypto": "^1.0.1",
