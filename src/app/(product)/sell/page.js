@@ -135,11 +135,7 @@ export default function SellPage() {
       body.append('contactPhone', formData.contactPhone.trim());
 
       // Target backend endpoint: /api/products/sell
-      const res = await api.post('/api/products/sell', body, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const res = await api.post('/api/products/sell', body);
 
       if (res.status === 201) {
         router.push('/feed');
@@ -147,6 +143,9 @@ export default function SellPage() {
       }
     } catch (err) {
       console.error("Backend Stage Error:", err.response?.data?.error);
+      console.log("Status Code:", err.response?.status);
+      console.log("Raw Response Data:", err.response?.data);
+      console.log("Error Message:", err.message);
       const responseData = err.response?.data;
 
       if (err.response?.status === 401) {
@@ -167,7 +166,7 @@ export default function SellPage() {
   return (
     <div className="min-h-screen bg-[#FAF9F6] pb-16 relative overflow-hidden">
       {/* Background Decorative Blobs */}
-      <div 
+      <div
         className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-multiply"
         style={{
           backgroundImage: `
@@ -225,7 +224,7 @@ export default function SellPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-zinc-200/80 shadow-xl p-6 sm:p-8 md:p-10">
-          
+
           {error && (
             <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold tracking-wide flex items-center justify-between">
               <span>{error}</span>
@@ -234,7 +233,7 @@ export default function SellPage() {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-            
+
             {/* LEFT COLUMN: Media Upload */}
             <div className="lg:col-span-5 space-y-6">
               <input
@@ -245,14 +244,13 @@ export default function SellPage() {
                 onChange={handleFileSelect}
               />
 
-              <div 
+              <div
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-2xl p-6 bg-zinc-50/50 text-center flex flex-col items-center justify-center min-h-[340px] relative transition-all ${
-                  dragActive ? 'border-emerald-700 bg-emerald-50/30 scale-[1.01]' : 'border-emerald-800/20'
-                }`}
+                className={`border-2 border-dashed rounded-2xl p-6 bg-zinc-50/50 text-center flex flex-col items-center justify-center min-h-[340px] relative transition-all ${dragActive ? 'border-emerald-700 bg-emerald-50/30 scale-[1.01]' : 'border-emerald-800/20'
+                  }`}
               >
                 {imagePreview ? (
                   <div className="relative w-full h-64 rounded-xl overflow-hidden border border-zinc-200">
@@ -274,7 +272,7 @@ export default function SellPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
                     </div>
-                    
+
                     <h3 className="text-base font-extrabold text-zinc-900 mb-1">Drop product photo here</h3>
                     <p className="text-xs text-zinc-400 font-medium mb-4">or</p>
 
@@ -370,7 +368,7 @@ export default function SellPage() {
                   className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
                 />
                 {fieldErrors.price && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.price}</p>}
-                
+
                 <label className="flex items-center gap-2 cursor-pointer pt-0.5">
                   <input
                     type="checkbox"
