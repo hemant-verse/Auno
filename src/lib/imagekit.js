@@ -42,7 +42,7 @@ export async function uploadToImageKit(fileBuffer, fileName, folder = 'campusmar
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || 'Image upload failed');
+    throw new Error(`ImageKit upload failed (${response.status}): ${errorText || 'unknown error'}`);
   }
 
   const result = await response.json();

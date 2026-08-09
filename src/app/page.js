@@ -2,8 +2,8 @@
 import HomePageClient from '@/components/home/HomePageClient';
 
 export const metadata = {
-  title: 'CampusVibe - Find Your College Crew',
-  description: 'The ultimate GenZ college-level chat and community building app. Connect, match vibes, and bypass the noise.',
+  title: 'Zuno',
+  description: 'Collage market place for students to buy and sell items',
 };
 
 

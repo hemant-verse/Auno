@@ -146,6 +146,7 @@ export default function SellPage() {
         router.refresh();
       }
     } catch (err) {
+      console.error("Backend Stage Error:", err.response?.data?.error);
       const responseData = err.response?.data;
 
       if (err.response?.status === 401) {

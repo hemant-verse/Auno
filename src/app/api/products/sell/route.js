@@ -6,6 +6,9 @@ import Product from '@/models/product.model';
 import { authorizeRequest } from '@/lib/middleware';
 import { uploadToImageKit } from '@/lib/imagekit';
 
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 // 1. Define Zod Validation Schema
 const SellProductSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters').max(100),
@@ -18,6 +21,8 @@ const SellProductSchema = z.object({
 });
 
 export async function POST(request) {
+  let stage = 'authorization';
+
   try {
     // Step 1: Authorization Check via Middleware
     const { user, errorResponse } = authorizeRequest(request);
@@ -25,7 +30,7 @@ export async function POST(request) {
       return NextResponse.json({ error: errorResponse.error }, { status: errorResponse.status });
     }
 
-    // Step 2: Parse FormData Payload
+    stage = 'form-data parsing';
     const formData = await request.formData();
     const rawData = {
       title: formData.get('title'),
@@ -39,7 +44,7 @@ export async function POST(request) {
 
     const imageFile = formData.get('image');
 
-    // Step 3: Input Validation
+    stage = 'input validation';
     if (!imageFile || typeof imageFile === 'string') {
       return NextResponse.json({ error: 'Image file is required' }, { status: 400 });
     }
@@ -52,7 +57,7 @@ export async function POST(request) {
       );
     }
 
-    // Step 4: Server-side Image Processing & Compression (Sharp)
+    stage = 'image processing';
     const arrayBuffer = await imageFile.arrayBuffer();
     const inputBuffer = Buffer.from(arrayBuffer);
 
@@ -64,10 +69,10 @@ export async function POST(request) {
 
     const fileName = `${Date.now()}_${imageFile.name.split('.')[0]}.webp`;
 
-    // Step 5: Upload Compressed Image to ImageKit
+    stage = 'ImageKit upload';
     const imageUrl = await uploadToImageKit(compressedImageBuffer, fileName, 'campusmarket/products');
 
-    // Step 6: Save Document to MongoDB
+    stage = 'MongoDB save';
     await connectDB();
     const newProduct = await Product.create({
       ...validatedData.data,
@@ -80,7 +85,10 @@ export async function POST(request) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error in /api/products/sell:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error(`Error in /api/products/sell during ${stage}:`, error);
+    return NextResponse.json(
+      { error: `Unable to publish listing during ${stage}. Check the server configuration and logs.` },
+      { status: 500 }
+    );
   }
 }
