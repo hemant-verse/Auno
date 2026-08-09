@@ -155,7 +155,11 @@ export default function SellPage() {
       body.append('contactPhone', formData.contactPhone.trim());
 
       // Target backend endpoint: /api/products/sell
-      const res = await api.post('/api/products/sell', body);
+      const res = await api.post('/api/products/sell', body, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
       if (res.status === 201) {
         router.push('/feed');
