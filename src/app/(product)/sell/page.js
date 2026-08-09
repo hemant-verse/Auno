@@ -166,7 +166,7 @@ export default function SellPage() {
         router.refresh();
       }
     } catch (err) {
-      console.error("Backend Stage Error:", err.response?.data?.error);
+
       console.log("Status Code:", err.response?.status);
       console.log("Raw Response Data:", err.response?.data);
       console.log("Error Message:", err.message);

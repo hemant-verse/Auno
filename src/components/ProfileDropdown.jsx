@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import api from '@/lib/axios';
+import api, { notifyAuthChanged, setAccessToken } from '@/lib/axios';
 
 export default function ProfileDropdown() {
   const router = useRouter();
@@ -59,9 +59,10 @@ export default function ProfileDropdown() {
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
+      setAccessToken('');
+      notifyAuthChanged();
       setIsOpen(false);
-      router.push('/login');
-      router.refresh();
+      router.replace('/login');
     }
   };
 
@@ -124,14 +125,14 @@ export default function ProfileDropdown() {
             </Link>
 
             <Link
-              href="/profile"
+              href="/guidelines"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-zinc-800 hover:bg-zinc-50 hover:text-emerald-700 transition-colors"
             >
               <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Account Settings
+              Guidelines & Terms
             </Link>
           </div>
 

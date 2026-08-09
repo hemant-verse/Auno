@@ -41,6 +41,14 @@ export default function FeedPage() {
     };
 
     fetchUserFavorites();
+
+    const handleAuthChanged = () => {
+      setIsAuthenticated(false);
+      setFavorites({});
+    };
+
+    window.addEventListener('auth-changed', handleAuthChanged);
+    return () => window.removeEventListener('auth-changed', handleAuthChanged);
   }, []);
 
   // 2. Fetch Categories Dynamically
@@ -93,8 +101,8 @@ export default function FeedPage() {
 
   // Trigger Re-fetch on Filter Change
   useEffect(() => {
-    setPage(1);
     const timer = setTimeout(() => {
+      setPage(1);
       fetchProducts(selectedCategory, searchQuery, 1, false);
     }, 300);
 
@@ -131,7 +139,7 @@ export default function FeedPage() {
 
       if (err.response?.status === 401) {
         const currentPath = encodeURIComponent(window.location.pathname);
-        window.location.href = `/login?redirect=${currentPath}`;
+        window.location.assign(`/login?redirect=${currentPath}`);
       } else {
         console.error('Failed to toggle favorite:', err);
       }
@@ -211,7 +219,7 @@ export default function FeedPage() {
         </div>
 
         {/* HERO PROMO BANNER */}
-        <section className="relative rounded-4xl overflow-hidden bg-cover bg-center bg-no-repeat bg-[url('/images/mobile_bg.png')] md:bg-[url('/images/desktop_bg.png')] flex items-center justify-center shadow-sm p-8 sm:p-12 md:p-16">
+        <section className="relative rounded-4xl overflow-hidden bg-cover md:bg-center bg-bottom-left bg-no-repeat bg-[url('https://ik.imagekit.io/algoping/campusmarket/public%20/mobile_bg.png')] md:bg-[url('https://ik.imagekit.io/algoping/campusmarket/public%20/desktop_bg.png')] flex items-center justify-center shadow-sm p-8 sm:p-12 md:p-16">
           <div className="relative z-10 max-w-xl space-y-4">
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-zinc-950 tracking-tight leading-tight">
               Buy, Sell & Connect <br />

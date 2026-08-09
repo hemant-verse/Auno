@@ -46,10 +46,15 @@ export async function uploadToImageKit(fileBuffer, fileName, folder = 'campusmar
   }
 
   const result = await response.json();
-  return result.url; // Returns the full URL of the uploaded image
+  return {
+    url: result.url,
+    fileId: result.fileId,
+  };
 }
 
 export async function deleteFromImageKit(fileId) {
+  if (!fileId) return false;
+
   const config = getImagekitConfig();
 
   const authHeader = `Basic ${Buffer.from(`${config.privateKey}:`).toString('base64')}`;

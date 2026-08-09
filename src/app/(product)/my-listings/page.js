@@ -20,7 +20,8 @@ export default function MyListingsPage() {
   };
 
   useEffect(() => {
-    fetchListings();
+    const timer = setTimeout(fetchListings, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleStatusChange = async (productId, newStatus) => {
@@ -117,7 +118,7 @@ export default function MyListingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
             </div>
-            <p className="text-base font-bold text-zinc-900">You haven't listed any items for sale yet</p>
+            <p className="text-base font-bold text-zinc-900">You haven&apos;t listed any items for sale yet</p>
             <p className="text-xs text-zinc-500">Start selling your old books, devices, or gear across campus today.</p>
             <div className="pt-2">
               <Link
@@ -223,7 +224,7 @@ export default function MyListingsPage() {
           <div>
             <p className="text-xs font-bold text-zinc-900">Keep Your Listings Active!</p>
             <p className="text-xs text-zinc-500 font-medium mt-0.5">
-              Students can only see available items in the feed. Mark items as "Reserved" when discussing a purchase, or "Sold" when completed.
+              Students can only see available items in the feed. Mark items as &quot;Reserved&quot; when discussing a purchase, or &quot;Sold&quot; when completed.
             </p>
           </div>
         </div>

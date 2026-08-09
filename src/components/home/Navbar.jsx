@@ -14,17 +14,31 @@ export default function Navbar() {
   const [checked, setChecked] = useState(false); //[cite: 4]
 
   useEffect(() => {
+    let isActive = true;
+
     const identify = async () => {
       try {
         const res = await api.get('/api/auth/me');
-        setUser(res.data.user);
+        if (isActive) setUser(res.data.user);
       } catch {
-        setUser(false); // guest
+        if (isActive) setUser(false); // guest
       } finally {
-        setChecked(true);
+        if (isActive) setChecked(true);
       }
     };
     identify();
+
+    const handleAuthChanged = () => {
+      isActive = false;
+      setUser(false);
+      setChecked(true);
+    };
+
+    window.addEventListener('auth-changed', handleAuthChanged);
+    return () => {
+      isActive = false;
+      window.removeEventListener('auth-changed', handleAuthChanged);
+    };
   }, [pathname]);
 
  

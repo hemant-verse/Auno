@@ -26,12 +26,14 @@ export default function RegisterClient() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e) => {
   e.preventDefault();
   setError('');
   setSuccess('');
+  setLoading(true);
 
   // Natively extract all form values at once
   const formData = new FormData(e.currentTarget);
@@ -74,6 +76,8 @@ export default function RegisterClient() {
     } else {
       setError('Network error. Please try again later.');
     }
+  } finally {
+    setLoading(false);
   }
 };
 
@@ -119,6 +123,7 @@ export default function RegisterClient() {
           setAgreeTerms={setAgreeTerms}
           error={error}
           success={success}
+          loading={loading}
         />
       </motion.div>
 
@@ -137,6 +142,7 @@ export default function RegisterClient() {
           setAgreeTerms={setAgreeTerms}
           error={error}
           success={success}
+          loading={loading}
         />
       </motion.div>
     </div>
@@ -163,7 +169,7 @@ function BrandContent() {
   );
 }
 
-function FormContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, setAgreeTerms, error, success }) {
+function FormContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, setAgreeTerms, error, success, loading }) {
   return (
     <div className="max-w-md w-full mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -241,15 +247,21 @@ function FormContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, 
             required
           />
           <label htmlFor="terms" className="text-xs font-medium text-zinc-500 leading-normal select-none cursor-pointer">
-            I agree to the <Link href="#" className="text-zinc-950 underline font-bold">Terms of Service</Link> and confirm that I am an active college student.
+            I agree to the <Link href="/guidelines" className="text-zinc-950 underline font-bold">Guidelines</Link> and confirm that I am an active college student.
           </label>
         </div>
 
         <button
           type="submit"
-          className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-4 rounded-full text-sm shadow-xl hover:shadow-2xl transition-all transform active:scale-[0.98] mt-4"
+          disabled={loading}
+          className="w-full bg-zinc-950 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 text-white font-bold py-4 rounded-full text-sm shadow-xl hover:shadow-2xl transition-all transform active:scale-[0.98] mt-4"
         >
-          Get Started
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true" />
+              Creating account...
+            </span>
+          ) : 'Get Started'}
         </button>
       </form>
 

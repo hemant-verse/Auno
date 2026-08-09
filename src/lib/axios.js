@@ -7,6 +7,12 @@ export const setAccessToken = (token) => {
   accessToken = token;
 };
 
+export const notifyAuthChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('auth-changed'));
+  }
+};
+
 // 2. Create the custom Axios instance
 const api = axios.create({
   baseURL: '/', // Points to your Next.js app root

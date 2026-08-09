@@ -26,7 +26,7 @@ export default function Hero() {
         transition={{ duration: 0.7, delay: 0.2 }}
         className="text-base sm:text-lg md:text-xl text-zinc-800 font-medium max-w-2xl mx-auto leading-relaxed mb-8"
       >
-        Pass On What You Don't Need. Grab What You Do.
+        Pass On What You Don&apos;t Need. Grab What You Do.
       </motion.p>
       
       <motion.div

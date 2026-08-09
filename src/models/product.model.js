@@ -38,6 +38,10 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    imageFileId: {
+      type: String,
+      trim: true,
+    },
     contactPhone: {
       type: String,
       required: true,

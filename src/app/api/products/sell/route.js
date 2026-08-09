@@ -65,14 +65,15 @@ export async function POST(request) {
 
     // 5. ImageKit Upload
     stage = 'ImageKit upload';
-    const imageUrl = await uploadToImageKit(rawBuffer, fileName, 'campusmarket/products');
+    const uploadedImage = await uploadToImageKit(rawBuffer, fileName, 'campusmarket/products');
 
     // 6. Database Save
     stage = 'MongoDB save';
     await connectDB();
     const newProduct = await Product.create({
       ...validatedData.data,
-      imageUrl,
+      imageUrl: uploadedImage.url,
+      imageFileId: uploadedImage.fileId,
       seller: user.id || user._id,
     });
 

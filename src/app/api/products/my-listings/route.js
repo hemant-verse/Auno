@@ -76,7 +76,11 @@ export async function DELETE(request) {
     }
 
     if (product.imageFileId) {
-      await deleteFromImageKit(product.imageFileId);
+      try {
+        await deleteFromImageKit(product.imageFileId);
+      } catch (imageError) {
+        console.error('ImageKit cleanup failed after product deletion:', imageError);
+      }
     }
 
     return NextResponse.json({ success: true, message: 'Listing deleted successfully' });

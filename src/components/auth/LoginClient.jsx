@@ -28,6 +28,7 @@ export default function LoginClient() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
     const searchParams = useSearchParams();
     
@@ -36,6 +37,7 @@ export default function LoginClient() {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setLoading(true);
 
     // Natively extract all form values at once
     const formData = new FormData(e.currentTarget);
@@ -80,6 +82,8 @@ export default function LoginClient() {
       } else {
         setError('Network error. Please try again later.');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -125,6 +129,7 @@ export default function LoginClient() {
           setAgreeTerms={setAgreeTerms}
           error={error}
           success={success}
+          loading={loading}
         />
       </motion.div>
 
@@ -143,6 +148,7 @@ export default function LoginClient() {
           setAgreeTerms={setAgreeTerms}
           error={error}
           success={success}
+          loading={loading}
         />
       </motion.div>
     </div>
@@ -169,7 +175,7 @@ function BrandContent() {
   );
 }
 
-function CardContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, setAgreeTerms, error, success }) {
+function CardContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, setAgreeTerms, error, success, loading }) {
   return (
     <div className="max-w-md w-full mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -232,9 +238,15 @@ function CardContent({ handleSubmit, showPassword, setShowPassword, agreeTerms, 
 
         <button 
           type="submit" 
-          className="w-full bg-zinc-950 hover:bg-zinc-800 text-white font-bold py-4 rounded-full text-sm shadow-xl hover:shadow-2xl transition-all transform active:scale-[0.98] mt-2"
+          disabled={loading}
+          className="w-full bg-zinc-950 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 text-white font-bold py-4 rounded-full text-sm shadow-xl hover:shadow-2xl transition-all transform active:scale-[0.98] mt-2"
         >
-          Enter Dashboard
+          {loading ? (
+            <span className="inline-flex items-center justify-center gap-2">
+              <span className="h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true" />
+              Signing in...
+            </span>
+          ) : 'Enter Dashboard'}
         </button>
       </form>
 

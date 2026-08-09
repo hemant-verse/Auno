@@ -229,6 +229,17 @@ function CardContent() {
           : `Enter the code sent to ${email} and your new password below.`}
       </p>
 
+      {step === 'OTP_AND_PASSWORD_STEP' && (
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3.5 text-left">
+          <svg className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v3.75m0 3h.008M10.29 3.86l-7.2 12.48A1.5 1.5 0 004.39 18.6h15.22a1.5 1.5 0 001.3-2.26l-7.2-12.48a1.5 1.5 0 00-2.6 0z" />
+          </svg>
+          <p className="text-[11px] font-semibold leading-relaxed text-amber-900">
+            Can&apos;t find the code in your primary inbox? Check your Spam, Junk, or Promotions folder and search for &quot;Zuno&quot; or &quot;OTP&quot;.
+          </p>
+        </div>
+      )}
+
       {message.text && (
         <div
           className={`p-3.5 rounded-2xl text-xs font-bold mb-6 text-center border ${
@@ -326,7 +337,7 @@ function CardContent() {
       <div className="mt-6 text-center text-xs text-zinc-500 font-medium space-y-2">
         {step === 'OTP_AND_PASSWORD_STEP' && (
           <p>
-            Didn't receive the code?{' '}
+            Didn&apos;t receive the code?{' '}
             <button
               type="button"
               onClick={handleResendOtp}
