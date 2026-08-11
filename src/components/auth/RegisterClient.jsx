@@ -52,33 +52,34 @@ export default function RegisterClient() {
     // Pass the registered email to the verify page in query params
     const userEmail = data.email || response.data?.email || '';
     router.replace(`/verify?email=${encodeURIComponent(userEmail)}`);
-  } catch (err) {
-    if (err.response) {
-      const serverError = err.response.data;
-      if (serverError.details) {
-        console.log('Zod Field Errors:', serverError.details);
+    } catch (err) {
+      if (err.response) {
+        const serverError = err.response.data;
+        if (serverError.details) {
+          console.log('Zod Field Errors:', serverError.details);
 
-        const errorsObj = {};
-        serverError.details.forEach((issue) => {
-          const fieldName = issue.path && issue.path.length > 0 ? issue.path[0] : 'global';
+          const errorsObj = {};
+          serverError.details.forEach((issue) => {
+            const fieldName = issue.path && issue.path.length > 0 ? issue.path[0] : 'global';
 
-          if (fieldName === 'global') {
-            setError(issue.message);
-          } else {
-            errorsObj[fieldName] = issue.message;
-          }
-        });
+            if (fieldName === 'global') {
+              setError(issue.message);
+            } else {
+              errorsObj[fieldName] = issue.message;
+            }
+          });
 
-        setFieldErrors(errorsObj);
+          setFieldErrors(errorsObj);
+        } else {
+          // Prefer explicit server `message` then `error` for better UX
+          setError(serverError.message || serverError.error || 'Something went wrong.');
+        }
       } else {
-        setError(serverError.error || 'Something went wrong.');
+        setError('Network error. Please try again later.');
       }
-    } else {
-      setError('Network error. Please try again later.');
+    } finally {
+      setLoading(false);
     }
-  } finally {
-    setLoading(false);
-  }
 };
 
   return (

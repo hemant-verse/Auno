@@ -107,8 +107,12 @@ function CardContent() {
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
+    if (typeof window !== 'undefined' && inputRefs.current[0]) {
+      // Avoid auto-focusing on small screens to prevent keyboard pushing the
+      // verification card off-screen. Only autofocus on desktop/tablet widths.
+      if (window.innerWidth >= 768) {
+        inputRefs.current[0].focus();
+      }
     }
   }, []);
 

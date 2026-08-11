@@ -33,7 +33,7 @@ export function getOtpEmailTemplate(otp, userName) {
                 <!-- Text -->
                 <tr>
                   <td align="left" style="padding-bottom: 24px; color: #71717a; font-size: 14px; line-height: 1.6;">
-                    Hey <strong>${userName}</strong> 👋, enter this code to complete your registration and unlock the campus marketplace.
+                    Hey <strong>${userName}</strong> 👋, enter this code to complete your registration and unlock the Zuno.
                   </td>
                 </tr>
 

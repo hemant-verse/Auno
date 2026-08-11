@@ -43,7 +43,7 @@ export async function POST(request) {
     const isVerified = user.isVerified;
     if (!isVerified) {
       return NextResponse.json(
-        { error: 'Account not verified. Please check your email.' },
+        { error: 'Account not verified. Register and verify your email.' },
         { status: 403 }
       );
     }

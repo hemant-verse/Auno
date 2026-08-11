@@ -70,7 +70,7 @@ export async function POST(req) {
     // Send styled email via Nodemailer
     await sendEmail({
       to: email,
-      subject: `${otp} is your CampusMarket verification code`,
+      subject: `${otp} is your Zuno verification code`,
       html: getOtpEmailTemplate(otp, UserName),
     });
 
