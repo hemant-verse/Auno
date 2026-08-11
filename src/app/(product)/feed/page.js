@@ -20,13 +20,27 @@ export default function FeedPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [favorites, setFavorites] = useState({});
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
-  // 1. Fetch User's Saved Favorites
+  // 1. Fetch User Authentication and Saved Favorites
   useEffect(() => {
+    let isActive = true;
+
     const fetchUserFavorites = async () => {
       try {
+        await api.get('/api/auth/me');
+        if (!isActive) return;
+        setIsAuthenticated(true);
+      } catch (err) {
+        if (!isActive) return;
+        setIsAuthenticated(false);
+        setFavorites({});
+        return;
+      }
+
+      try {
         const res = await api.get('/api/user/favorites');
+        if (!isActive) return;
         if (res.data?.favoriteIds) {
           const favMap = res.data.favoriteIds.reduce((acc, id) => {
             acc[id] = true;
@@ -34,21 +48,24 @@ export default function FeedPage() {
           }, {});
           setFavorites(favMap);
         }
-        setIsAuthenticated(true);
       } catch (err) {
-        setIsAuthenticated(false);
+        if (!isActive) return;
+        setFavorites({});
       }
     };
 
     fetchUserFavorites();
 
     const handleAuthChanged = () => {
-      setIsAuthenticated(false);
-      setFavorites({});
+      if (!isActive) return;
+      fetchUserFavorites();
     };
 
     window.addEventListener('auth-changed', handleAuthChanged);
-    return () => window.removeEventListener('auth-changed', handleAuthChanged);
+    return () => {
+      isActive = false;
+      window.removeEventListener('auth-changed', handleAuthChanged);
+    };
   }, []);
 
   // 2. Fetch Categories Dynamically
@@ -175,7 +192,7 @@ export default function FeedPage() {
           </div>
           {/* Header Action Controls */}
           <div className="flex items-center gap-3">
-            {isAuthenticated ? (
+            {isAuthenticated === true ? (
               <>
                 <Link
                   href="/favorites"
@@ -196,10 +213,12 @@ export default function FeedPage() {
                 </Link>
                 <ProfileDropdown />
               </>
-            ) : (
+            ) : isAuthenticated === false ? (
               <Link href="/login" className="rounded-full bg-zinc-950 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">
                 Login
               </Link>
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-zinc-100 animate-pulse" />
             )}
           </div>
 

@@ -12,7 +12,7 @@ export default function Background() {
       {/* MOBILE LAYOUT (< 768px)                              */}
       {/* ---------------------------------------------------- */}
       <svg
-        className="block h-full w-full object-cover md:hidden"
+        className="block h-screen w-full object-cover md:hidden"
         viewBox="0 0 375 812"
         preserveAspectRatio="xMidYMid slice"
         xmlns="http://www.w3.org/2000/svg"

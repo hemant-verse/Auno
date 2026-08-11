@@ -26,12 +26,12 @@ export default function Navbar() {
         if (isActive) setChecked(true);
       }
     };
+
     identify();
 
     const handleAuthChanged = () => {
-      isActive = false;
-      setUser(false);
-      setChecked(true);
+      if (!isActive) return;
+      identify();
     };
 
     window.addEventListener('auth-changed', handleAuthChanged);

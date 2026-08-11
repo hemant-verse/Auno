@@ -16,6 +16,7 @@ export const notifyAuthChanged = () => {
 // 2. Create the custom Axios instance
 const api = axios.create({
   baseURL: '/', // Points to your Next.js app root
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,6 +28,11 @@ api.interceptors.request.use(
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
+
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     return config;
   },
   (error) => {
@@ -36,7 +42,12 @@ api.interceptors.request.use(
 
 // 4. Response Interceptor: Handle 401 Expirations & Token Rotation
 api.interceptors.response.use(
-  (response) => response, 
+  (response) => {
+    if (response?.data?.accessToken) {
+      setAccessToken(response.data.accessToken);
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -46,7 +57,7 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 && 
       !originalRequest._retry && 
-      !originalRequest.url.includes('/api/auth/login') // <-- Exclude login path
+      !originalRequest.url.includes('/api/auth/login')
     ) {
       originalRequest._retry = true;
 

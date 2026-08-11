@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import api, { setAccessToken } from '@/lib/axios';
+import api, { notifyAuthChanged, setAccessToken } from '@/lib/axios';
 import { useRouter,useSearchParams } from 'next/navigation';
 
 
@@ -47,6 +47,7 @@ export default function LoginClient() {
       const response = await api.post('/api/auth/login', data);
 
       setAccessToken(response.data.accessToken); // Store the new access token in memory
+      notifyAuthChanged();
       setSuccess(response.data.message);
       e.target.reset();
       

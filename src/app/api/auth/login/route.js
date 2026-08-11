@@ -40,6 +40,13 @@ export async function POST(request) {
       );
     }
 
+    const isVerified = user.isVerified;
+    if (!isVerified) {
+      return NextResponse.json(
+        { error: 'Account not verified. Please check your email.' },
+        { status: 403 }
+      );
+    }
 
     const isPasswordValid = await bcrypt.compare(Password, user.Password);
     if (!isPasswordValid) {
