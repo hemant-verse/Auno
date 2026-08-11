@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
-import { verifyRefreshToken } from '@/lib/auth';
 
 // Initialize Upstash Redis Rate Limiter
 // Limit: 10 requests per 10-second sliding window per IP
@@ -59,10 +58,9 @@ export async function middleware(request) {
 
   // Case B: Authenticated user accessing /login or /register
   if (authRoutes.includes(pathname) && refreshToken) {
-    const decoded = verifyRefreshToken(refreshToken);
-    if (decoded) {
-      return NextResponse.redirect(new URL('/', request.url));
-    }
+    // Presence of a refresh token is used as a lightweight guard here.
+    // Full token validation is performed in server-side routes.
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();

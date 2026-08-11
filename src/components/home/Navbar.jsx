@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import {  usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import api from '@/lib/axios'; //[cite: 2, 4]
 import ProfileDropdown from '../ProfileDropdown';
+import PwaInstallButton from '@/components/PwaInstallButton';
 
 export default function Navbar() {
  
@@ -57,13 +58,13 @@ export default function Navbar() {
       </Link>
       
       <div className="flex items-center gap-3">
+        <PwaInstallButton />
         {checked && (
           <>
             {user ? (
               /* ── Logged-in state ── */
               <>
-              <ProfileDropdown />
-               
+                <ProfileDropdown />
               </>
             ) : (
               /* ── Guest state ── */
