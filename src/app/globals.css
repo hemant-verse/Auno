@@ -30,3 +30,19 @@ body {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+@keyframes custom-shake {
+  0%, 75%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  77.5%, 82.5%, 87.5%, 92.5%, 97.5% {
+    transform: scale(1.1) rotate(-4deg);
+  }
+  80%, 85%, 90%, 95% {
+    transform: scale(1.1) rotate(4deg);
+  }
+}
+
+.animate-shake {
+  animation: custom-shake 4s infinite ease-in-out;
+}

@@ -52,7 +52,7 @@ export default function Navbar() {
       className="w-full max-w-7xl mx-auto px-6 py-4 flex items-center justify-between z-30"
     >
       <Link href="/">
-        <div className="text-5xl font-black tracking-tighter text-zinc-900 cursor-pointer">
+        <div className="text-5xl font-black tracking-tighter  text-zinc-900 cursor-pointer">
           Z<span className="text-emerald-700">uno</span>
         </div>
       </Link>

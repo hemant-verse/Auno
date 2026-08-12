@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import PwaRegister from '@/components/PwaRegister';
+import OfflineGuard from "@/components/OfflineGuard";
+import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
   title: "Zuno",
@@ -12,6 +13,7 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
+
   return (
     <html lang="en" className="h-full antialiased">
       <head>
@@ -21,9 +23,10 @@ export default function RootLayout({ children }) {
         <meta name="theme-color" content="#0f766e" />
       </head>
       <body className="min-h-full flex flex-col">
+        <OfflineGuard />
+        <Toaster position="bottom-center" />
         {children}
         <Analytics />
-        <PwaRegister />
       </body>
     </html>
   );

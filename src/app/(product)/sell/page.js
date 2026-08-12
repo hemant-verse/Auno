@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import imageCompression from 'browser-image-compression';
 import api from '@/lib/axios';
+import ProfileDropdown from '@/components/ProfileDropdown';
 
 const CATEGORIES = ['Books', 'Electronics', 'Dorm', 'Fashion', 'Other'];
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
@@ -198,37 +199,7 @@ export default function SellPage() {
         }}
       />
 
-      {/* TOP NAVIGATION BAR */}
-      <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <Link href="/feed" className="text-xl font-black tracking-tight text-zinc-950 flex items-center gap-0.5">
-            Z<span className="text-emerald-700">uno</span>
-          </Link>
-
-          <div className="relative flex-1 max-w-xl hidden sm:block">
-            <input
-              type="text"
-              placeholder="Search for books, gadgets, furniture..."
-              className="w-full bg-zinc-100/80 border-0 focus:ring-2 focus:ring-zinc-950 rounded-full py-2.5 pl-5 pr-10 text-xs sm:text-sm font-medium placeholder-zinc-400 text-zinc-900 outline-none"
-            />
-            <svg className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/favorites" aria-label="Favorites" className="p-2 text-zinc-600 hover:text-rose-600 hover:bg-zinc-100 rounded-full transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </Link>
-
-            <Link href="/profile" className="w-8 h-8 rounded-full bg-emerald-800 text-white font-bold text-xs flex items-center justify-center cursor-pointer shadow-sm">
-              ME
-            </Link>
-          </div>
-        </div>
-      </header>
+    
 
       {/* MAIN CONTAINER */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10 space-y-4">
