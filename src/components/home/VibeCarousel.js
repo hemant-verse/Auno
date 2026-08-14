@@ -11,7 +11,7 @@ export default function CampusLiveTicker() {
   const [loading, setLoading] = useState(true);
 
   // 1. Fetch live product data from MongoDB
- useEffect(() => {
+  useEffect(() => {
     let isMounted = true;
 
     const fetchLiveDrops = async () => {
@@ -34,6 +34,7 @@ export default function CampusLiveTicker() {
       isMounted = false;
     };
   }, []);
+
   // 2. Auto-rotate through live items
   useEffect(() => {
     if (drops.length <= 1) return;
@@ -125,22 +126,26 @@ export default function CampusLiveTicker() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.35 }}
-                className="p-4 rounded-2xl bg-white/70 border border-zinc-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className="p-4 rounded-2xl bg-white/70 border border-zinc-200/80 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 overflow-hidden"
               >
-                <div className="space-y-1 max-w-md">
+                {/* Text Content Block */}
+                <div className="space-y-1 w-full min-w-0 sm:max-w-md">
                   <div className="flex items-center gap-2 flex-wrap">
                     {currentDrop.category && (
                       <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md bg-zinc-950 text-white shadow-xs">
                         {currentDrop.category}
                       </span>
                     )}
-                    <span className="text-xs text-zinc-600 font-medium">{sellerUsername}</span>
-                    <span className="text-xs text-zinc-400">
+                    <span className="text-xs text-zinc-600 font-medium truncate max-w-[120px] sm:max-w-none">
+                      {sellerUsername}
+                    </span>
+                    <span className="text-xs text-zinc-400 shrink-0">
                       • {currentDrop.createdAt ? new Date(currentDrop.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
                     </span>
                   </div>
 
-                  <h4 className="text-base sm:text-lg font-black text-zinc-950 tracking-tight truncate">
+                  {/* Scaled & Clamped Title */}
+                  <h4 className="text-sm sm:text-lg font-black text-zinc-950 tracking-tight line-clamp-2 break-words">
                     {currentDrop.title}
                   </h4>
 
@@ -151,14 +156,15 @@ export default function CampusLiveTicker() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-                  <span className="text-xl sm:text-2xl font-black text-emerald-800">
+                {/* Pricing & CTA Block */}
+                <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end shrink-0">
+                  <span className="text-lg sm:text-2xl font-black text-emerald-800">
                     ₹{currentDrop.price?.toLocaleString() || '0'}
                   </span>
 
                   <Link
                     href={`/product/${currentDrop._id}`}
-                    className="bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-full transition-transform active:scale-95 shadow-md flex items-center gap-1"
+                    className="bg-zinc-950 hover:bg-zinc-800 text-white font-bold text-xs px-4 py-2.5 rounded-full transition-transform active:scale-95 shadow-md flex items-center gap-1 shrink-0"
                   >
                     View Listing
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -9,9 +9,9 @@ import api from '@/lib/axios';
 const CATEGORIES = ['Books', 'Electronics', 'Dorm', 'Fashion', 'Other'];
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
 const CONTACT_METHODS = [
-  { label: 'WhatsApp', value: 'whatsapp', placeholder: 'e.g. 9876****10' },
-  { label: 'Telegram', value: 'telegram', placeholder: 'e.g. username (without @)' },
-  { label: 'Instagram', value: 'instagram', placeholder: 'e.g. username (without @)' },
+  { label: 'WhatsApp-Number', value: 'whatsapp', placeholder: 'e.g. 9876****10' },
+  { label: 'Telegram-UserName', value: 'telegram', placeholder: 'Use username (without @)' },
+  { label: 'Instagram-UserName', value: 'instagram', placeholder: 'Use username (without @)' },
 ];
 
 export default function SellPage() {
@@ -139,10 +139,22 @@ export default function SellPage() {
     const contactVal = formData.contactValue.trim();
     if (!contactVal) {
       errors.contactValue = 'Please enter your contact details.';
-    } else if (formData.contactType === 'whatsapp' && contactVal.replace(/\D/g, '').length < 8) {
-      errors.contactValue = 'Please enter a valid phone number.';
-    } else if ((formData.contactType === 'telegram' || formData.contactType === 'instagram') && contactVal.length < 2) {
-      errors.contactValue = 'Please enter a valid handle/username.';
+    } else if (formData.contactType === 'whatsapp') {
+      const digitsOnly = contactVal.replace(/\D/g, '');
+      if (digitsOnly.length < 8) {
+        errors.contactValue = 'Please enter a valid phone number.';
+      }
+    } else if (formData.contactType === 'telegram' || formData.contactType === 'instagram') {
+      const cleanHandle = contactVal.replace(/^@/, '');
+      const digitsOnly = contactVal.replace(/\D/g, '');
+      const phoneRegex = /^(\+?\d{1,4}[\s-]?)?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{4}$/;
+
+      // Reject if input matches a phone number pattern or contains 7+ digits (likely a mobile number)
+      if (phoneRegex.test(contactVal) || digitsOnly.length >= 7) {
+        errors.contactValue = 'Use username instead of a mobile number.';
+      } else if (cleanHandle.length < 2) {
+        errors.contactValue = 'Please enter a valid handle/username.';
+      }
     }
 
     if (Object.keys(errors).length > 0 || !selectedFile) {
@@ -170,8 +182,12 @@ export default function SellPage() {
       body.append('category', formData.category);
       body.append('condition', formData.condition);
 
-      // Clean leading '@' symbols for usernames automatically
-      const sanitizedContact = formData.contactValue.trim().replace(/^@/, '');
+      // Sanitize input based on type
+      let sanitizedContact = formData.contactValue.trim();
+      if (formData.contactType === 'telegram' || formData.contactType === 'instagram') {
+        sanitizedContact = sanitizedContact.replace(/^@/, '');
+      }
+
       body.append(formData.contactType, sanitizedContact);
 
       const res = await api.post('/api/products/sell', body);
