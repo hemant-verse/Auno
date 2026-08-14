@@ -20,6 +20,7 @@ export async function GET(request) {
 
     const query = {
       status: { $in: ['AVAILABLE', 'RESERVED'] },
+      verify: 'APPROVED',
     };
 
     if (category && category !== 'ALL') {

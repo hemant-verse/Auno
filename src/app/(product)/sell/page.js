@@ -199,7 +199,7 @@ export default function SellPage() {
         }}
       />
 
-    
+
 
       {/* MAIN CONTAINER */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10 space-y-4">
@@ -216,12 +216,7 @@ export default function SellPage() {
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-zinc-200/80 shadow-xl p-6 sm:p-8 md:p-10">
 
-          {error && (
-            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold tracking-wide flex items-center justify-between">
-              <span>{error}</span>
-              <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 font-extrabold">✕</button>
-            </div>
-          )}
+
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
 
@@ -429,7 +424,7 @@ export default function SellPage() {
                   name="contactPhone"
                   value={formData.contactPhone}
                   onChange={handleChange}
-                  placeholder="+91 9876****10"
+                  placeholder="9876****10"
                   className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
                 />
                 {fieldErrors.contactPhone && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.contactPhone}</p>}
@@ -446,8 +441,8 @@ export default function SellPage() {
                     {compressing
                       ? 'Optimizing image...'
                       : loading
-                      ? 'Processing & Uploading...'
-                      : 'Publish Listing'}
+                        ? 'Submitting for review...'
+                        : 'Submit for Approval'}
                   </span>
                   <svg className="w-4 h-4 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
@@ -457,6 +452,12 @@ export default function SellPage() {
 
             </div>
           </div>
+          {error && (
+            <div className="m-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold tracking-wide flex items-center justify-between">
+              <span>{error}</span>
+              <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 font-extrabold">✕</button>
+            </div>
+          )}
         </form>
       </main>
     </div>

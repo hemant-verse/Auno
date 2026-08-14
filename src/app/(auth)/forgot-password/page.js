@@ -2,8 +2,8 @@ import ForgotPasswordClient from '@/components/auth/ForgotPasswordClient';
 import Background from '@/components/Background';
 
 export const metadata = {
-  title: 'Reset Password | Zuno',
-  description: 'Recover access to your Zuno account.',
+  title: 'Reset Password | Auno',
+  description: 'Recover access to your Auno account.',
 };
 
 export default function ForgotPasswordPage() {

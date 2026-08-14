@@ -4,8 +4,8 @@ import OfflineGuard from "@/components/OfflineGuard";
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {
-  title: "Zuno",
-  description: "Collage marketplace for students to buy and sell items",
+  title: "Auno | College Marketplace",
+  description: "College marketplace for students to buy and sell items",
 };
 
 export const viewport = {

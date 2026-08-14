@@ -3,8 +3,8 @@ import RegisterClient from '@/components/auth/RegisterClient';
 import Background from '@/components/Background';
 
 export const metadata = {
-  title: 'Join the Community | Zuno',
-  description: 'Create your distraction-free college community profile and match your vibe.',
+  title: 'Join the Community | Auno',
+  description: 'Create your distraction-free college marketspace profile and match your vibe.',
 };
 
 export default function RegisterPage() {

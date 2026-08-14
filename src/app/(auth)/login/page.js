@@ -3,8 +3,8 @@ import LoginClient from '@/components/auth/LoginClient';
 import Background from '@/components/Background';
 
 export const metadata = {
-  title: 'Welcome Back | Zuno',
-  description: 'Log back into your distraction-free college community space.',
+  title: 'Welcome Back | Auno',
+  description: 'Log back into your distraction-free college marketspace space.',
 };
 
 export default function LoginPage() {

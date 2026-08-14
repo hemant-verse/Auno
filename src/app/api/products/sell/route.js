@@ -75,6 +75,7 @@ export async function POST(request) {
       imageUrl: uploadedImage.url,
       imageFileId: uploadedImage.fileId,
       seller: user.id || user._id,
+      verify: 'PENDING',
     });
 
     return NextResponse.json(

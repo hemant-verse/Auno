@@ -16,7 +16,7 @@ export function getOtpEmailTemplate(otp, userName) {
                 <tr>
                   <td align="left" style="padding-bottom: 20px;">
                     <span style="background-color: #18181b; color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; display: inline-block;">
-                      Zuno 🎓
+                      Auno 🎓
                     </span>
                   </td>
                 </tr>
@@ -33,7 +33,7 @@ export function getOtpEmailTemplate(otp, userName) {
                 <!-- Text -->
                 <tr>
                   <td align="left" style="padding-bottom: 24px; color: #71717a; font-size: 14px; line-height: 1.6;">
-                    Hey <strong>${userName}</strong> 👋, enter this code to complete your registration and unlock the Zuno.
+                    Hey <strong>${userName}</strong> 👋, enter this code to complete your registration and unlock the Auno.
                   </td>
                 </tr>
 
@@ -80,7 +80,7 @@ export function getResetPasswordEmailTemplate(otp, userName) {
                 <tr>
                   <td align="left" style="padding-bottom: 20px;">
                     <span style="background-color: #18181b; color: #ffffff; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; padding: 6px 14px; border-radius: 9999px; text-transform: uppercase; display: inline-block;">
-                      Zuno Security 🔑
+                      Auno Security 🔑
                     </span>
                   </td>
                 </tr>

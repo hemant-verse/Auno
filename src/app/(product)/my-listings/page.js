@@ -82,7 +82,7 @@ export default function MyListingsPage() {
               My Listed Items
             </h1>
             <p className="text-xs sm:text-sm font-medium text-zinc-700 mt-1">
-              Manage all the items you have listed on CampusMarket.
+              Manage all the items you have listed on Auno.
             </p>
           </div>
 
@@ -162,16 +162,25 @@ export default function MyListingsPage() {
                       </div>
 
                       {/* Status Tag */}
-                      <span
-                        className={`inline-block px-2.5 py-0.5 text-[10px] font-extrabold rounded-full tracking-wider ${statusUpper === 'AVAILABLE'
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : statusUpper === 'RESERVED'
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                              : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
-                          }`}
-                      >
-                        {statusUpper}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`inline-block px-2.5 py-0.5 text-[10px] font-extrabold rounded-full tracking-wider ${statusUpper === 'AVAILABLE'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : statusUpper === 'RESERVED'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-zinc-100 text-zinc-600 border border-zinc-200'
+                            }`}
+                        >
+                          {statusUpper}
+                        </span>
+
+                        {/* Verify Tag */}
+                        {item.verify && (
+                          <span className={`inline-block px-2 py-0.5 text-[10px] font-extrabold rounded-full tracking-wider ${item.verify === 'APPROVED' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : item.verify === 'REJECTED' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-zinc-50 text-zinc-600 border border-zinc-200'}`}>
+                            {item.verify}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

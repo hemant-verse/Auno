@@ -18,16 +18,20 @@ export async function POST(request) {
     const newProduct = await Product.create({
       ...body,
       seller: user.userId || user.id,
-    });
+        verify: 'PENDING',
+      });
 
     // 2. Broadcast Notification for New Listing
-    await Notification.create({
-      recipient: null, // Broadcast to all users
-      title: 'New Item Listed!',
-      message: `A new item "${newProduct.title}" was just listed for ₹${newProduct.price}.`,
-      type: 'NEW_LISTING',
-      product: newProduct._id,
-    });
+    // Only broadcast when the listing is approved
+    if (newProduct.verify === 'APPROVED') {
+      await Notification.create({
+        recipient: null, // Broadcast to all users
+        title: 'New Item Listed!',
+        message: `A new item "${newProduct.title}" was just listed for ₹${newProduct.price}.`,
+        type: 'NEW_LISTING',
+        product: newProduct._id,
+      });
+    }
 
     return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
   } catch (error) {

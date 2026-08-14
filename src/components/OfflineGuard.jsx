@@ -8,7 +8,7 @@ export default function OfflineGuard() {
 
   useEffect(() => {
     const triggerOfflineToast = () => {
-      toast.error('No network connection. Service worker will try to serve cached content.', {
+      toast.error('No network connection.', {
         id: 'offline-toast',
         duration: 4000,
         position: 'bottom-center',

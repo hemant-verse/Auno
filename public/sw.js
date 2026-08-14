@@ -1,4 +1,5 @@
-const CACHE_NAME = 'zuno-pwa-cache-v3';
+
+const CACHE_NAME = 'auno-pwa-cache-v4';
 const HOME_SHELL = [
   '/',
   '/manifest.json',
@@ -79,17 +80,14 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((networkResponse) => {
-          // Cache the successful network response for future use if needed, but return it immediately
-          if (networkResponse && networkResponse.ok) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
+          // Do NOT cache navigation responses here. Caching navigations can
+          // store user-specific pages (eg. redirected login pages) under a
+          // protected route like `/sell` and later serve them to authenticated
+          // users, causing incorrect redirects. Return the fresh network
+          // response directly and fall back to the offline shell on failure.
           return networkResponse;
         })
-        .catch(() => {
-          // Network failed (offline) -> Only show offline page
-          return caches.match('/offline.html');
-        })
+        .catch(() => caches.match('/offline.html'))
     );
     return;
   }

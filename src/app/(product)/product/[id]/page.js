@@ -12,13 +12,13 @@ export async function generateMetadata({ params }) {
 
     if (!product) {
       return {
-        title: 'Product Not Found | Zuno',
+        title: 'Product Not Found | Auno',
         description: 'This listing is no longer available.',
       };
     }
 
-    const title = `${product.title} - $${product.price} | Zuno`;
-    const description = `${product.category} • Condition: ${product.condition}. ${product.description ? product.description.slice(0, 120) + '...' : 'Available on Zuno.'}`;
+    const title = `${product.title} - $${product.price} | Auno`;
+    const description = `${product.category} • Condition: ${product.condition}. ${product.description ? product.description.slice(0, 120) + '...' : 'Available on Auno.'}`;
 
     return {
       title,
@@ -45,7 +45,7 @@ export async function generateMetadata({ params }) {
     };
   } catch (error) {
     return {
-      title: 'Zuno Listing',
+      title: 'Auno Listing',
     };
   }
 }

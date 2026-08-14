@@ -59,6 +59,12 @@ const ProductSchema = new mongoose.Schema(
       default: 'AVAILABLE',
       index: true,
     },
+    verify: {
+      type: String,
+      enum: ['PENDING', 'APPROVED', 'REJECTED'],
+      default: 'PENDING',
+      index: true,
+    },
   },
   { timestamps: true }
 );

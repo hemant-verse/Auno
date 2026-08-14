@@ -20,7 +20,7 @@ export default function HomePageClient() {
       </div>
       
       <footer className="w-full py-4 text-center text-xs text-zinc-700/80 font-medium z-20">
-        © {new Date().getFullYear()} Zuno. The safe college marketplace.
+        © {new Date().getFullYear()} Auno. The safe college marketplace.
       </footer>
     </>
   );

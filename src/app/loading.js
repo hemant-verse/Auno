@@ -33,7 +33,7 @@ export default function Loading() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-mono text-neutral-400 tracking-wider uppercase">
-              Loading
+              Loading...
             </span>
           </div>
           <p className="text-xs sm:text-sm text-neutral-500 font-mono">
@@ -45,8 +45,8 @@ export default function Loading() {
 
       {/* Footer Status Line */}
       <footer className="relative z-10 w-full max-w-6xl mx-auto flex items-center justify-between text-[10px] sm:text-xs font-mono text-neutral-600">
-        <span>STATUS: 200 OK</span>
-        <span>NEXT.JS APP</span>
+        <span>I'm handling</span>
+        <span>the Situation</span>
       </footer>
 
     </div>

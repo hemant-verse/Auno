@@ -169,7 +169,7 @@ export default function FeedPage() {
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-zinc-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Link href="/feed" onClick={handleResetFilters} className="text-xl font-black tracking-tight text-zinc-950 flex items-center gap-0.5">
-            Z<span className="text-emerald-700">uno</span>
+            A<span className="text-emerald-700">uno</span>
           </Link>
 
           {/* Search Input */}
@@ -190,10 +190,31 @@ export default function FeedPage() {
               className="w-full bg-zinc-100/80 border-0 focus:ring-2 focus:ring-zinc-950 rounded-full py-2 pl-10 pr-4 text-xs sm:text-sm font-medium placeholder-zinc-400 text-zinc-900 transition-all outline-none"
             />
           </div>
+
           {/* Header Action Controls */}
           <div className="flex items-center gap-3">
             {isAuthenticated === true ? (
               <>
+                <Link
+                  href="/"
+                  aria-label="home"
+                  className="p-2 text-zinc-600 hover:text-gray-700 hover:bg-zinc-100 rounded-full transition-colors relative"
+                >
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                    />
+                  </svg>
+
+                </Link>
                 <Link
                   href="/favorites"
                   aria-label="Favorites"
@@ -281,11 +302,10 @@ export default function FeedPage() {
               <button
                 type="button"
                 onClick={() => setSelectedCategory('ALL')}
-                className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${
-                  selectedCategory === 'ALL'
+                className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap border ${selectedCategory === 'ALL'
                     ? 'bg-zinc-950 text-white border-zinc-950 shadow-md'
                     : 'bg-white text-zinc-800 border-zinc-200 hover:border-zinc-300'
-                }`}
+                  }`}
               >
                 All Items
               </button>
@@ -300,11 +320,10 @@ export default function FeedPage() {
                     key={cat._id || categoryName}
                     type="button"
                     onClick={() => setSelectedCategory(isSelected ? 'ALL' : categoryName)}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl border text-left transition-all cursor-pointer whitespace-nowrap ${
-                      isSelected
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl border text-left transition-all cursor-pointer whitespace-nowrap ${isSelected
                         ? 'bg-zinc-950 border-zinc-950 text-white shadow-md'
                         : 'bg-white border-zinc-200/80 hover:border-zinc-300 hover:shadow-md text-zinc-900'
-                    }`}
+                      }`}
                   >
                     <span className="text-xs font-bold">{categoryName}</span>
                     {itemCount && (

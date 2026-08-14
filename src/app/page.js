@@ -3,8 +3,8 @@ import Background from '@/components/Background';
 import HomePageClient from '@/components/home/HomePageClient';
 
 export const metadata = {
-  title: 'Zuno',
-  description: 'Collage market place for students to buy and sell items',
+  title: 'Auno',
+  description: 'College marketplace for students to buy and sell items',
 };
 
 

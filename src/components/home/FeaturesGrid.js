@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 
 const FEATURES = [
   {
-    title: 'Verified College Peers',
-    desc: 'Buy and sell safely with students from your own campus. No strangers—just trusted college community members.',
-    badge: '100% Safe',
+    title: 'Verified & Moderated',
+    desc: 'Every listing is reviewed for safety before going live. Buy and sell with verified students from your own campus.',
+    badge: 'Safe & Curated',
     color: 'from-emerald-500/20 to-emerald-500/0',
     iconColor: 'text-emerald-700 bg-emerald-100',
     icon: (
@@ -18,7 +18,7 @@ const FEATURES = [
   },
   {
     title: 'Zero Fees, Direct Cash',
-    desc: "Zuno takes zero commission on your sales. Keep 100% of your earnings with instant direct transactions.",
+    desc: 'Auno takes zero commission on your sales. Keep 100% of your earnings with direct peer-to-peer transactions.',
     badge: '0% Commission',
     color: 'from-amber-500/20 to-amber-500/0',
     iconColor: 'text-amber-700 bg-amber-100',
@@ -29,8 +29,8 @@ const FEATURES = [
     ),
   },
   {
-    title: 'Lightning Fast Deals',
-    desc: 'List your dorm gear or snag textbooks in under 60 seconds with direct instant WhatsApp seller outreach.',
+    title: 'Fast Campus Deals',
+    desc: 'Once approved, connect instantly with interested campus buyers through direct WhatsApp or email outreach.',
     badge: 'Instant Connect',
     color: 'from-blue-500/20 to-blue-500/0',
     iconColor: 'text-blue-700 bg-blue-100',
@@ -80,7 +80,7 @@ export default function FeaturesGrid() {
             key={idx}
             variants={cardVariants}
             whileHover={{ y: -6, transition: { duration: 0.2 } }}
-            className="relative group bg-gray-200 border border-zinc-200/80 hover:border-zinc-300 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between"
+            className="relative group bg-white border border-zinc-200/80 hover:border-zinc-300 rounded-3xl p-6 sm:p-8 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between"
           >
             {/* Top Subtle Gradient Light Glow */}
             <div
@@ -108,8 +108,6 @@ export default function FeaturesGrid() {
                 {feat.desc}
               </p>
             </div>
-
-           
           </motion.div>
         ))}
       </motion.div>

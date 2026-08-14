@@ -63,7 +63,7 @@ export default function CampusLiveTicker() {
         <div className="bg-white/80 backdrop-blur-md rounded-3xl p-6 border border-zinc-200/80 shadow-lg text-zinc-900">
           <h3 className="text-lg font-bold mb-2">Offline mode</h3>
           <p className="text-sm text-zinc-600">
-            Live campus drops are unavailable offline, but Zuno’s home page shell is still accessible.
+            Live campus drops are unavailable offline, but Auno’s home page shell is still accessible.
           </p>
         </div>
       </div>
