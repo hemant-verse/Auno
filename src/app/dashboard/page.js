@@ -7,7 +7,6 @@ import { redirect } from 'next/navigation';
 import AdminClient from './AdminClient';
 
 export default async function Page({ searchParams }) {
-  // Server-side auth: prefer Authorization header, fallback to refresh cookie
   let authHeader = null;
   try {
     const hdrs = await headers();
@@ -42,7 +41,6 @@ export default async function Page({ searchParams }) {
     return redirect('/');
   }
 
-  // Parse search / pagination / filters from searchParams
   const page = Math.max(1, parseInt(searchParams?.page || '1', 10));
   const limit = Math.min(50, Math.max(5, parseInt(searchParams?.limit || '20', 10)));
   const skip = (page - 1) * limit;
@@ -56,20 +54,33 @@ export default async function Page({ searchParams }) {
     query.$or = [{ title: re }, { description: re }];
   }
 
-  const [products, total] = await Promise.all([
-    Product.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).populate('seller', 'name email').lean(),
+  const [rawProducts, total] = await Promise.all([
+    Product.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('seller', 'name email whatsapp telegram instagram')
+      .lean(),
     Product.countDocuments(query),
   ]);
 
+  // Sanitize ObjectIds & Date objects to plain JSON types for RSC serialization
+  const products = JSON.parse(JSON.stringify(rawProducts));
+
   return (
-    <div className="min-h-screen bg-[#FAF9F6] text-black p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-black">Admin Dashboard</h1>
+    <div className="min-h-screen bg-[#FAF9F6] text-zinc-900 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl sm:text-2xl font-black text-zinc-900">Admin Dashboard</h1>
         </div>
 
-        <div className="bg-white rounded-2xl border p-4">
-          <h2 className="font-bold mb-4">Pending Listings</h2>
+        <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-zinc-100">
+            <h2 className="text-base sm:text-lg font-bold text-zinc-900">Pending Listings</h2>
+            <span className="text-xs font-semibold bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full">
+              {total} Review Required
+            </span>
+          </div>
 
           <AdminClient
             initialProducts={products}

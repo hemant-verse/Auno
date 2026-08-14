@@ -6,10 +6,11 @@ export async function GET() {
   try {
     await connectDB();
 
-    // Aggregate active categories and count available items per category
+    // Aggregate active, approved categories and count available items per category
     const categoryStats = await Product.aggregate([
       {
         $match: {
+          verify: 'APPROVED',
           status: { $in: ['AVAILABLE', 'RESERVED'] },
         },
       },

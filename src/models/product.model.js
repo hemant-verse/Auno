@@ -42,9 +42,17 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    contactPhone: {
+    // Optional contact options flexible to seller preference
+    whatsapp: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    telegram: {
+      type: String,
+      trim: true,
+    },
+    instagram: {
+      type: String,
       trim: true,
     },
     seller: {
@@ -69,8 +77,14 @@ const ProductSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// In models/product.model.js
-ProductSchema.index({ status: 1, category: 1, createdAt: -1 });
-ProductSchema.index({ status: 1, title: 'text', description: 'text' });
+
+ProductSchema.pre('validate', function () {
+  if (!this.whatsapp && !this.telegram && !this.instagram) {
+    this.invalidate('contacts', 'At least one contact method (WhatsApp, Telegram, or Instagram) must be provided.');
+  }
+});
+
+ProductSchema.index({ verify: 1, status: 1, category: 1, createdAt: -1 });
+ProductSchema.index({ verify: 1, status: 1, title: 'text', description: 'text' });
 
 export default mongoose.models.Product || mongoose.model('Product', ProductSchema);

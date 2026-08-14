@@ -5,16 +5,20 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import imageCompression from 'browser-image-compression';
 import api from '@/lib/axios';
-import ProfileDropdown from '@/components/ProfileDropdown';
 
 const CATEGORIES = ['Books', 'Electronics', 'Dorm', 'Fashion', 'Other'];
 const CONDITIONS = ['New', 'Like New', 'Good', 'Fair'];
+const CONTACT_METHODS = [
+  { label: 'WhatsApp', value: 'whatsapp', placeholder: 'e.g. 9876****10' },
+  { label: 'Telegram', value: 'telegram', placeholder: 'e.g. username (without @)' },
+  { label: 'Instagram', value: 'instagram', placeholder: 'e.g. username (without @)' },
+];
 
 export default function SellPage() {
   const router = useRouter();
   const fileInputRef = useRef(null);
 
-  // Form State matching Backend Schema
+  // Form State
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -22,7 +26,8 @@ export default function SellPage() {
     isNegotiable: false,
     category: '',
     condition: '',
-    contactPhone: '',
+    contactType: 'whatsapp', // Default selected contact option
+    contactValue: '',        // Stores input value for selected option
   });
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -35,20 +40,30 @@ export default function SellPage() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    // Reset contact value when user changes the contact type dropdown
+    if (name === 'contactType') {
+      setFormData((prev) => ({
+        ...prev,
+        contactType: value,
+        contactValue: '',
+      }));
+      setFieldErrors((prev) => ({ ...prev, contactValue: undefined }));
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
-    // Clear specific field error on user edit
+
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  // Client-Side Image Compression & File Processing
   const processImageFile = async (file) => {
     if (!file) return;
-
     if (!file.type.startsWith('image/')) {
       setError('Please select a valid image file (JPG, PNG, WEBP).');
       return;
@@ -58,24 +73,18 @@ export default function SellPage() {
     setCompressing(true);
 
     const options = {
-      maxSizeMB: 0.8,           // Compress target down to ~800KB max
-      maxWidthOrHeight: 1200,   // Downscale to 1200px max dimension
-      useWebWorker: true,       // Run compression in multi-threaded Web Worker
-      fileType: 'image/webp',   // Output modern WebP format
+      maxSizeMB: 0.8,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+      fileType: 'image/webp',
     };
 
     try {
-      // 1. Compress raw image in browser memory
       const compressedFile = await imageCompression(file, options);
-
-      // 2. Set compressed file object
       setSelectedFile(compressedFile);
-
-      // 3. Update preview URL
       setImagePreview(URL.createObjectURL(compressedFile));
     } catch (err) {
       console.error('Client-side image compression failed:', err);
-      // Fallback: Use original file if compression fails
       setSelectedFile(file);
       setImagePreview(URL.createObjectURL(file));
     } finally {
@@ -115,7 +124,6 @@ export default function SellPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Client-side quick checks before hitting API
   const validateForm = () => {
     setFieldErrors({});
     const errors = {};
@@ -126,7 +134,16 @@ export default function SellPage() {
     if (!formData.price || parseFloat(formData.price) < 0) errors.price = 'Price must be 0 or greater.';
     if (!formData.category) errors.category = 'Please select a valid category.';
     if (!formData.condition) errors.condition = 'Please select a condition.';
-    if (formData.contactPhone.trim().length < 8) errors.contactPhone = 'Provide a valid phone or WhatsApp number.';
+
+    // Contact validation depending on selected method
+    const contactVal = formData.contactValue.trim();
+    if (!contactVal) {
+      errors.contactValue = 'Please enter your contact details.';
+    } else if (formData.contactType === 'whatsapp' && contactVal.replace(/\D/g, '').length < 8) {
+      errors.contactValue = 'Please enter a valid phone number.';
+    } else if ((formData.contactType === 'telegram' || formData.contactType === 'instagram') && contactVal.length < 2) {
+      errors.contactValue = 'Please enter a valid handle/username.';
+    }
 
     if (Object.keys(errors).length > 0 || !selectedFile) {
       setFieldErrors(errors);
@@ -144,7 +161,6 @@ export default function SellPage() {
     setLoading(true);
 
     try {
-      // Build Multipart Form Data payload
       const body = new FormData();
       body.append('image', selectedFile, selectedFile.name || 'product.webp');
       body.append('title', formData.title.trim());
@@ -153,9 +169,11 @@ export default function SellPage() {
       body.append('isNegotiable', String(formData.isNegotiable));
       body.append('category', formData.category);
       body.append('condition', formData.condition);
-      body.append('contactPhone', formData.contactPhone.trim());
 
-      // Target backend endpoint: /api/products/sell
+      // Clean leading '@' symbols for usernames automatically
+      const sanitizedContact = formData.contactValue.trim().replace(/^@/, '');
+      body.append(formData.contactType, sanitizedContact);
+
       const res = await api.post('/api/products/sell', body);
 
       if (res.status === 201) {
@@ -163,17 +181,11 @@ export default function SellPage() {
         router.refresh();
       }
     } catch (err) {
-
-      console.log("Status Code:", err.response?.status);
-      console.log("Raw Response Data:", err.response?.data);
-      console.log("Error Message:", err.message);
       const responseData = err.response?.data;
-
       if (err.response?.status === 401) {
         const currentPath = encodeURIComponent(window.location.pathname);
         router.push(`/login?redirect=${currentPath}`);
       } else if (err.response?.status === 400 && responseData?.details) {
-        // Map backend Zod validation error fields to frontend form inputs
         setFieldErrors(responseData.details);
         setError('Validation failed. Please check the highlighted fields below.');
       } else {
@@ -184,24 +196,13 @@ export default function SellPage() {
     }
   };
 
+  // Find configuration for the current contact type
+  const activeContactConfig = CONTACT_METHODS.find(
+    (method) => method.value === formData.contactType
+  );
+
   return (
     <div className="min-h-screen bg-[#FAF9F6] pb-16 relative overflow-hidden">
-      {/* Background Decorative Blobs */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none opacity-40 mix-blend-multiply"
-        style={{
-          backgroundImage: `
-            radial-gradient(circle at 10% 20%, #FDE68A 0%, transparent 40%),
-            radial-gradient(circle at 90% 10%, #A7F3D0 0%, transparent 40%),
-            radial-gradient(circle at 50% 80%, #FCA5A5 0%, transparent 50%),
-            radial-gradient(circle at 85% 75%, #6EE7B7 0%, transparent 45%)
-          `
-        }}
-      />
-
-
-
-      {/* MAIN CONTAINER */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 relative z-10 space-y-4">
         <div className="flex items-center gap-3 text-xs font-semibold text-zinc-600">
           <Link href="/feed" className="w-8 h-8 rounded-xl bg-white border border-zinc-200 shadow-sm flex items-center justify-center hover:bg-zinc-50 transition-colors">
@@ -215,12 +216,8 @@ export default function SellPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-zinc-200/80 shadow-xl p-6 sm:p-8 md:p-10">
-
-
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-
-            {/* LEFT COLUMN: Media Upload */}
+            {/* LEFT COLUMN: Image Upload */}
             <div className="lg:col-span-5 space-y-6">
               <input
                 ref={fileInputRef}
@@ -235,8 +232,9 @@ export default function SellPage() {
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-2xl p-6 bg-zinc-50/50 text-center flex flex-col items-center justify-center min-h-[340px] relative transition-all ${dragActive ? 'border-emerald-700 bg-emerald-50/30 scale-[1.01]' : 'border-emerald-800/20'
-                  }`}
+                className={`border-2 border-dashed rounded-2xl p-6 bg-zinc-50/50 text-center flex flex-col items-center justify-center min-h-[340px] relative transition-all ${
+                  dragActive ? 'border-emerald-700 bg-emerald-50/30 scale-[1.01]' : 'border-emerald-800/20'
+                }`}
               >
                 {compressing ? (
                   <div className="flex flex-col items-center gap-2">
@@ -281,20 +279,6 @@ export default function SellPage() {
                   </>
                 )}
               </div>
-
-              <div className="bg-[#FFFDF5] border border-amber-200/60 rounded-2xl p-4 text-xs space-y-2">
-                <div className="flex items-center gap-2 text-amber-800 font-bold">
-                  <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>Tips for better response</span>
-                </div>
-                <ul className="text-zinc-600 space-y-1 pl-6 list-disc font-medium text-[11px]">
-                  <li>Use high-quality photos with good lighting</li>
-                  <li>Show defects or marks clearly</li>
-                  <li>Be detailed in product description</li>
-                </ul>
-              </div>
             </div>
 
             {/* RIGHT COLUMN: Form Inputs */}
@@ -316,7 +300,7 @@ export default function SellPage() {
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="e.g. Engineering Mathematics Vol 2"
-                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
+                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
                 />
                 {fieldErrors.title && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.title}</p>}
               </div>
@@ -329,16 +313,13 @@ export default function SellPage() {
                 <textarea
                   id="description"
                   name="description"
-                  rows={4}
+                  rows={3}
                   maxLength={1000}
                   value={formData.description}
                   onChange={handleChange}
-                  placeholder="Describe item condition, edition, usage duration, etc..."
-                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl p-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none resize-none"
+                  placeholder="Describe item condition, usage duration, etc..."
+                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl p-4 text-xs font-medium text-zinc-900 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none resize-none"
                 />
-                <span className="absolute bottom-3 right-3 text-[10px] text-zinc-400 font-medium">
-                  {formData.description.length}/1000
-                </span>
                 {fieldErrors.description && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.description}</p>}
               </div>
 
@@ -356,7 +337,7 @@ export default function SellPage() {
                   value={formData.price}
                   onChange={handleChange}
                   placeholder="0.00"
-                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
+                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
                 />
                 {fieldErrors.price && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.price}</p>}
 
@@ -413,21 +394,48 @@ export default function SellPage() {
                 </div>
               </div>
 
-              {/* Contact Phone */}
-              <div className="space-y-1.5">
-                <label htmlFor="contactPhone" className="block text-xs font-bold text-zinc-800">
-                  WhatsApp / Contact Phone <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  id="contactPhone"
-                  type="text"
-                  name="contactPhone"
-                  value={formData.contactPhone}
-                  onChange={handleChange}
-                  placeholder="9876****10"
-                  className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 placeholder-zinc-400 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
-                />
-                {fieldErrors.contactPhone && <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.contactPhone}</p>}
+              {/* DYNAMIC CONTACT METHOD SECTION */}
+              <div className="border-t border-zinc-200 pt-4 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Contact Platform Selection */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contactType" className="block text-xs font-bold text-zinc-800">
+                      Preferred Contact Method <span className="text-rose-500">*</span>
+                    </label>
+                    <select
+                      id="contactType"
+                      name="contactType"
+                      value={formData.contactType}
+                      onChange={handleChange}
+                      className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none cursor-pointer"
+                    >
+                      {CONTACT_METHODS.map((method) => (
+                        <option key={method.value} value={method.value}>
+                          {method.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Respective Contact Value Input */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contactValue" className="block text-xs font-bold text-zinc-800">
+                      {activeContactConfig?.label} Contact Info <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      id="contactValue"
+                      type="text"
+                      name="contactValue"
+                      value={formData.contactValue}
+                      onChange={handleChange}
+                      placeholder={activeContactConfig?.placeholder}
+                      className="w-full bg-zinc-50/80 border border-zinc-200 rounded-xl py-3 px-4 text-xs font-medium text-zinc-900 focus:bg-white focus:ring-2 focus:ring-emerald-800 transition-all outline-none"
+                    />
+                    {fieldErrors.contactValue && (
+                      <p className="text-[11px] text-rose-600 font-bold mt-1">{fieldErrors.contactValue}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Submit CTA */}
@@ -441,21 +449,20 @@ export default function SellPage() {
                     {compressing
                       ? 'Optimizing image...'
                       : loading
-                        ? 'Submitting for review...'
-                        : 'Submit for Approval'}
+                      ? 'Submitting for review...'
+                      : 'Submit for Approval'}
                   </span>
-                  <svg className="w-4 h-4 rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
                 </button>
               </div>
-
             </div>
           </div>
+
           {error && (
-            <div className="m-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold tracking-wide flex items-center justify-between">
+            <div className="mt-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-xs font-bold flex items-center justify-between">
               <span>{error}</span>
-              <button type="button" onClick={() => setError('')} className="text-rose-600 hover:text-rose-900 font-extrabold">✕</button>
+              <button type="button" onClick={() => setError('')} className="text-rose-600 font-extrabold">
+                ✕
+              </button>
             </div>
           )}
         </form>

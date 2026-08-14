@@ -8,15 +8,26 @@ import { uploadToImageKit } from '@/lib/imagekit';
 export const runtime = 'nodejs';
 export const maxDuration = 60;
 
-const SellProductSchema = z.object({
-  title: z.string().min(3).max(100),
-  description: z.string().min(10).max(1000),
-  price: z.coerce.number().min(0),
-  isNegotiable: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
-  category: z.enum(['Books', 'Electronics', 'Dorm', 'Fashion', 'Other']),
-  condition: z.enum(['New', 'Like New', 'Good', 'Fair']),
-  contactPhone: z.string().min(8).max(20),
-});
+// Schema allowing flexible/dynamic contact options
+const SellProductSchema = z
+  .object({
+    title: z.string().min(3).max(100),
+    description: z.string().min(10).max(1000),
+    price: z.coerce.number().min(0),
+    isNegotiable: z.preprocess((val) => val === 'true' || val === true, z.boolean()),
+    category: z.enum(['Books', 'Electronics', 'Dorm', 'Fashion', 'Other']),
+    condition: z.enum(['New', 'Like New', 'Good', 'Fair']),
+    whatsapp: z.string().min(8).max(20).optional().or(z.literal('')),
+    telegram: z.string().min(2).max(50).optional().or(z.literal('')),
+    instagram: z.string().min(2).max(50).optional().or(z.literal('')),
+  })
+  .refine(
+    (data) => !!(data.whatsapp || data.telegram || data.instagram),
+    {
+      message: 'At least one contact method (WhatsApp, Telegram, or Instagram) must be provided.',
+      path: ['contactValue'],
+    }
+  );
 
 export async function POST(request) {
   let stage = 'authorization';
@@ -38,7 +49,9 @@ export async function POST(request) {
       isNegotiable: formData.get('isNegotiable'),
       category: formData.get('category'),
       condition: formData.get('condition'),
-      contactPhone: formData.get('contactPhone'),
+      whatsapp: formData.get('whatsapp') || undefined,
+      telegram: formData.get('telegram') || undefined,
+      instagram: formData.get('instagram') || undefined,
     };
 
     const imageFile = formData.get('image');
@@ -57,7 +70,7 @@ export async function POST(request) {
       );
     }
 
-    // 4. Convert File directly to Buffer (No Sharp required)
+    // 4. Convert File directly to Buffer
     stage = 'image buffer extraction';
     const arrayBuffer = await imageFile.arrayBuffer();
     const rawBuffer = Buffer.from(arrayBuffer);
