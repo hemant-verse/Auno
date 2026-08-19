@@ -1,24 +1,24 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
+import { getEnv } from './env';
 
-const MONGO_URI = process.env.MONGO_URI;
+const globalForMongoose = globalThis;
 
-const connectDB = async () => {
-  if (!MONGO_URI) {
-    throw new Error('MONGO_URI is not configured');
-  }
+export default async function connectDB() {
+  const { MONGO_URI } = getEnv();
 
   if (mongoose.connection.readyState === 1) {
     return mongoose.connection;
   }
 
+  if (!globalForMongoose.__aunoMongoosePromise) {
+    globalForMongoose.__aunoMongoosePromise = mongoose.connect(MONGO_URI);
+  }
+
   try {
-    const conn = await mongoose.connect(MONGO_URI);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    const conn = await globalForMongoose.__aunoMongoosePromise;
     return conn.connection;
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    globalForMongoose.__aunoMongoosePromise = undefined;
     throw error;
   }
-};
-
-export default connectDB;
+}
