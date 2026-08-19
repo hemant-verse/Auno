@@ -81,7 +81,7 @@ export async function POST(request) {
         message: 'Login successful!',
         accessToken,
         user: { id: user._id, name: user.UserName, email: user.email }
-      }),
+      },
       {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
