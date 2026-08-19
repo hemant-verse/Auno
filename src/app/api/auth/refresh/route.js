@@ -1,80 +1,94 @@
-// app/api/auth/refresh/route.js
 import { NextResponse } from 'next/server';
 import connectDb from '@/lib/db';
 import Session from '@/models/Session';
 import User from '@/models/user.model';
-import { 
-  verifyRefreshToken, 
-  hashToken, 
-  generateAccessToken, 
-  generateRefreshToken 
+import {
+  verifyRefreshToken,
+  hashToken,
+  generateAccessToken,
+  generateRefreshToken,
 } from '@/lib/auth';
+
+const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request) {
   try {
     await connectDb();
 
-    // 1. Grab the refresh token from cookies
     const cookieToken = request.cookies.get('refreshToken')?.value;
+
     if (!cookieToken) {
-      return NextResponse.json({ error: 'Refresh token missing' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
     }
 
-    // 2. Verify structural validity and expiration of JWT
     const decoded = verifyRefreshToken(cookieToken);
-    if (!decoded) {
-      return NextResponse.json({ error: 'Invalid or expired refresh token' }, { status: 401 });
+
+    if (!decoded?.id) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired refresh token' },
+        { status: 401 }
+      );
     }
 
-    // 3. Hash the cookie token to find it in the Session Manager
-    const incomingHash = hashToken(cookieToken);
-    const activeSession = await Session.findOne({ refreshHash: incomingHash });
-
-    if (!activeSession) {
-      // BREACH DETECTION: If a refresh token is valid but not in the DB, it may have been stolen!
-      // Wipe all active sessions for this user for security.
-      await Session.deleteMany({ userId: decoded.id });
-      return NextResponse.json({ error: 'Security breach detected. Please log in again.' }, { status: 401 });
-    }
-
-    // 4. Clean up / delete the used session to perform the rotation
-    await activeSession.deleteOne();
-
-    // 5. Fetch user profile to maintain payload integrity
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return NextResponse.json({ error: 'User no longer exists' }, { status: 401 });
-    }
-
-    // 6. Generate the rotated pair
-    const newAccessToken = generateAccessToken(user);
-    const newRefreshToken = generateRefreshToken(user);
-    const newHashedRefresh = hashToken(newRefreshToken);
-
-    // 7. Store the brand new refresh session in the manager
-    await Session.create({
-      userId: user._id,
-      refreshHash: newHashedRefresh,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    // Atomic consumption prevents two requests from successfully rotating
+    // the same refresh token.
+    const activeSession = await Session.findOneAndDelete({
+      refreshHash: hashToken(cookieToken),
+      userId: decoded.id,
     });
 
-    const response = NextResponse.json({
-      accessToken: newAccessToken,
-    }, { status: 200 });
+    if (!activeSession) {
+      // Do not delete every session here. A concurrent request can legitimately
+      // observe the token after another request has atomically consumed it.
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired refresh token' },
+        { status: 401 }
+      );
+    }
 
-    // 8. Replace the old cookie with the rotated token
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+
+    await Session.create({
+      userId: user._id,
+      refreshHash: hashToken(newRefreshToken),
+      expiresAt: new Date(Date.now() + REFRESH_MAX_AGE * 1000),
+    });
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        accessToken: newAccessToken,
+      },
+      { status: 200 }
+    );
+
     response.cookies.set('refreshToken', newRefreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60,
+      maxAge: REFRESH_MAX_AGE,
       path: '/',
     });
 
     return response;
-
   } catch (error) {
     console.error('Refresh Rotation Error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }

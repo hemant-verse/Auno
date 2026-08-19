@@ -4,6 +4,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import CampusLiveTicker from './VibeCarousel';
 
 export default function Hero() {
   return (
@@ -15,19 +16,12 @@ export default function Hero() {
         className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-zinc-950 leading-[1.1] mb-6"
       >
         Buy, Sell, Pass It On. <br className="hidden sm:inline" />
-        <span className="bg-gradient-to-r from-emerald-600 to-emerald-900 bg-clip-text text-transparent">
+        <span className="text-red-500">
           Safe, Fast, and Easy.
         </span>
       </motion.h1>
       
-      <motion.p 
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.2 }}
-        className="text-base sm:text-lg md:text-xl text-zinc-800 font-medium max-w-2xl mx-auto leading-relaxed mb-8"
-      >
-        Pass On What You Don&apos;t Need. Grab What You Do.
-      </motion.p>
+      <CampusLiveTicker />
       
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}

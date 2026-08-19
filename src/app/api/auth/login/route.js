@@ -1,102 +1,106 @@
-// app/api/auth/login/route.js
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import connectDb from '@/lib/db';
 import UserModel from '@/models/user.model';
 import { loginSchema } from '@/schemas/authschema';
-import { generateAccessToken, generateRefreshToken, hashToken } from '@/lib/auth';
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  hashToken,
+} from '@/lib/auth';
 import Session from '@/models/Session';
+
+const REFRESH_MAX_AGE = 7 * 24 * 60 * 60;
 
 export async function POST(request) {
   try {
     await connectDb();
 
     const body = await request.json();
-
     const validation = loginSchema.safeParse(body);
 
     if (!validation.success) {
-      const formattedErrors = validation.error.issues.map((issue) => ({
+      const details = validation.error.issues.map((issue) => ({
         fieldName: issue.path,
-        message: issue.message
+        message: issue.message,
       }));
+
       return NextResponse.json(
         {
+          success: false,
           error: 'Validation failed',
-          details: formattedErrors
+          details,
         },
         { status: 400 }
       );
     }
 
     const { email, Password } = validation.data;
-
-
     const user = await UserModel.findOne({ email });
+
+    // Do not reveal whether the account exists.
     if (!user) {
       return NextResponse.json(
-        { error: 'email not found' },
+        { success: false, error: 'Invalid email or password.' },
         { status: 401 }
       );
     }
 
-    const isVerified = user.isVerified;
-    if (!isVerified) {
+    if (!user.isVerified) {
       return NextResponse.json(
-        { error: 'Account not verified. Register and verify your email.' },
+        {
+          success: false,
+          error: 'Account not verified. Register and verify your email.',
+        },
         { status: 403 }
       );
     }
 
     const isPasswordValid = await bcrypt.compare(Password, user.Password);
+
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Invalid password.' },
+        { success: false, error: 'Invalid email or password.' },
         { status: 401 }
       );
     }
 
-
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
-    const hashedRefresh = hashToken(refreshToken);
 
-    // Save the hashed token to the Session Manager
     await Session.create({
       userId: user._id,
-      refreshHash: hashedRefresh,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+      refreshHash: hashToken(refreshToken),
+      expiresAt: new Date(Date.now() + REFRESH_MAX_AGE * 1000),
     });
 
-    // --- FIX: Instantiate the response object properly ---
-    const response = new NextResponse(
-      JSON.stringify({
+    const response = NextResponse.json(
+      {
+        success: true,
         message: 'Login successful!',
         accessToken,
-        user: { id: user._id, name: user.name, email: user.email }
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
+        user: {
+          id: String(user._id),
+          name: user.UserName,
+          email: user.email,
+        },
+      },
+      { status: 200 }
     );
 
-    // Append the cookie directly to the fresh response object
     response.cookies.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      maxAge: REFRESH_MAX_AGE,
       path: '/',
     });
 
     return response;
-
-
   } catch (error) {
     console.error('Login API Error:', error);
     return NextResponse.json(
-      { error: 'An internal server error occurred.' },
+      { success: false, error: 'An internal server error occurred.' },
       { status: 500 }
     );
   }

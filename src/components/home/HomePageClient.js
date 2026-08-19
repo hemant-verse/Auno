@@ -15,7 +15,6 @@ export default function HomePageClient() {
       
       <div className="flex-grow flex flex-col items-center justify-start px-4 pt-8 md:pt-16 pb-12 max-w-7xl mx-auto w-full text-zinc-900">
         <Hero />
-        <VibeCarousel />
         <FeaturesGrid />
       </div>
       

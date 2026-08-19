@@ -1,44 +1,52 @@
-// lib/auth.js
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import { getEnv } from './env';
 
+function getAccessSecret() {
+  return getEnv().JWT_ACCESS_SECRET;
+}
 
-const ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
-const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+function getRefreshSecret() {
+  return getEnv().JWT_REFRESH_SECRET;
+}
 
-// Fast SHA-256 hashing helper for the session manager
 export function hashToken(token) {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
 export function generateAccessToken(user) {
   return jwt.sign(
-    { id: user.id || user._id, email: user.email },
-    ACCESS_SECRET,
+    {
+      id: String(user.id || user._id),
+      email: user.email,
+    },
+    getAccessSecret(),
     { expiresIn: '30m' }
   );
 }
 
 export function generateRefreshToken(user) {
   return jwt.sign(
-    { id: user.id || user._id },
-    REFRESH_SECRET,
+    {
+      id: String(user.id || user._id),
+    },
+    getRefreshSecret(),
     { expiresIn: '7d' }
   );
 }
 
 export function verifyAccessToken(token) {
   try {
-    return jwt.verify(token, ACCESS_SECRET);
-  } catch (error) {
+    return jwt.verify(token, getAccessSecret());
+  } catch {
     return null;
   }
 }
 
 export function verifyRefreshToken(token) {
   try {
-    return jwt.verify(token, REFRESH_SECRET);
-  } catch (error) {
+    return jwt.verify(token, getRefreshSecret());
+  } catch {
     return null;
   }
 }

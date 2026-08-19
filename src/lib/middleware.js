@@ -1,19 +1,44 @@
-// lib/middleware.js
 import { verifyAccessToken } from './auth';
 
 export function authorizeRequest(request) {
   const authHeader = request.headers.get('authorization');
-  
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { user: null, errorResponse: { error: 'unauthorized', status: 401 } };
+
+  if (!authHeader || !/^Bearer\s+/i.test(authHeader)) {
+    return {
+      user: null,
+      errorResponse: {
+        error: 'Unauthorized',
+        status: 401,
+      },
+    };
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+
+  if (!token) {
+    return {
+      user: null,
+      errorResponse: {
+        error: 'Unauthorized',
+        status: 401,
+      },
+    };
+  }
+
   const decoded = verifyAccessToken(token);
 
-  if (!decoded) {
-    return { user: null, errorResponse: { error: 'Access token expired or malformed', status: 401 } };
+  if (!decoded || !decoded.id) {
+    return {
+      user: null,
+      errorResponse: {
+        error: 'Unauthorized',
+        status: 401,
+      },
+    };
   }
 
-  return { user: decoded, errorResponse: null };
+  return {
+    user: decoded,
+    errorResponse: null,
+  };
 }
