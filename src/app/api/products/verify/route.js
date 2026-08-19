@@ -1,75 +1,70 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Product from '@/models/product.model';
-import { authorizeRequest } from '@/lib/middleware';
+import User from '@/models/user.model';
+import { requireAdmin } from '@/lib/authorization';
+import { productVerifySchema } from '@/schemas/product.schema';
+import { isValidObjectId } from '@/lib/validation';
 
 export async function PATCH(request) {
   try {
-    const { user: decoded, errorResponse } = authorizeRequest(request);
-    if (errorResponse) {
-      return NextResponse.json({ error: errorResponse.error }, { status: errorResponse.status });
-    }
-
-    // Fetch full user from DB to verify role (token payload does not include role)
     await connectDB();
-    const User = (await import('@/models/user.model')).default;
-    const fullUser = decoded ? await User.findById(decoded.id || decoded._id).select('-password').lean() : null;
 
-    if (!fullUser || fullUser.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    const auth = await requireAdmin(request, User);
+    if (auth.response) return auth.response;
+
+    const validation = productVerifySchema.safeParse(await request.json());
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: 'Validation failed', details: validation.error.issues },
+        { status: 400 }
+      );
     }
 
-    const { productId, verify } = await request.json();
-    if (!['PENDING', 'APPROVED', 'REJECTED'].includes(verify)) {
-      return NextResponse.json({ error: 'Invalid verify status' }, { status: 400 });
+    const { productId, verify } = validation.data;
+
+    if (!isValidObjectId(productId)) {
+      return NextResponse.json({ success: false, error: 'Invalid product ID' }, { status: 400 });
     }
 
     const product = await Product.findById(productId);
     if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Product not found' }, { status: 404 });
     }
 
     const previous = product.verify;
     product.verify = verify;
     await product.save();
 
-    // If approved, create a broadcast notification
-    if (previous !== 'APPROVED' && verify === 'APPROVED') {
-      try {
-        const Notification = (await import('@/models/notification.model')).default;
-        await Notification.create({
-          recipient: null,
-          title: 'New Item Approved',
-          message: `A new item "${product.title}" is now available for ₹${product.price}.`,
-          type: 'NEW_LISTING',
-          product: product._id,
-        });
-      } catch (notifErr) {
-        console.error('Failed to create approval notification:', notifErr);
-      }
-    }
-
-    // Create an audit log entry for this admin action
     try {
       const AdminAudit = (await import('@/models/adminAudit.model')).default;
       const action = verify === 'APPROVED' ? 'APPROVE' : verify === 'REJECTED' ? 'REJECT' : 'SET_PENDING';
+
       await AdminAudit.create({
-        admin: fullUser._id,
+        admin: auth.fullUser._id,
         action,
         product: product._id,
         previousVerify: previous,
         newVerify: verify,
-        meta: { ip: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null },
+        meta: {
+          ip:
+            request.headers.get('x-forwarded-for') ||
+            request.headers.get('x-real-ip') ||
+            null,
+        },
       });
-    } catch (auditErr) {
-      console.error('Failed to write audit log:', auditErr);
+    } catch (auditError) {
+      console.error('Failed to write audit log:', auditError);
     }
 
-    await product.populate('seller', 'name email');
+    await product.populate('seller', 'UserName email');
 
     return NextResponse.json({ success: true, product });
   } catch (error) {
     console.error('Error updating product verify status:', error);
-    return NextResponse.json({ error: 'Failed to update verify status' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to update verify status' },
+      { status: 500 }
+    );
   }
 }

@@ -32,7 +32,7 @@ export async function POST(request) {
     const { email, Password } = validation.data;
 
 
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOne({ email }).select('+Password');;
     if (!user) {
       return NextResponse.json(
         { error: 'email not found' },
@@ -49,6 +49,7 @@ export async function POST(request) {
     }
 
     const isPasswordValid = await bcrypt.compare(Password, user.Password);
+
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid password.' },
@@ -73,7 +74,7 @@ export async function POST(request) {
       JSON.stringify({
         message: 'Login successful!',
         accessToken,
-        user: { id: user._id, name: user.name, email: user.email }
+        user: { id: user._id, name: user.UserName, email: user.email }
       }),
       {
         status: 200,

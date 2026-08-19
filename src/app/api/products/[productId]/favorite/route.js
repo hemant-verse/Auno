@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/db';
 import User from '@/models/user.model';
 import Product from '@/models/product.model';
@@ -6,7 +7,6 @@ import { authorizeRequest } from '@/lib/middleware';
 
 export async function POST(request, { params }) {
   try {
-    // 1. Authorize Request using existing middleware
     const { user: currentUser, errorResponse } = authorizeRequest(request);
 
     if (errorResponse) {
@@ -16,13 +16,22 @@ export async function POST(request, { params }) {
       );
     }
 
-    const userId = currentUser.userId || currentUser.id || currentUser._id;
     const { productId } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid product ID' },
+        { status: 400 }
+      );
+    }
 
     await connectDB();
 
-    // 2. Validate Product & User
-    const product = await Product.findById(productId);
+    const [product, user] = await Promise.all([
+      Product.findById(productId).select('_id'),
+      User.findById(currentUser.id).select('favorites'),
+    ]);
+
     if (!product) {
       return NextResponse.json(
         { success: false, error: 'Product not found' },
@@ -30,7 +39,6 @@ export async function POST(request, { params }) {
       );
     }
 
-    const user = await User.findById(userId).select('favorites');
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -38,25 +46,21 @@ export async function POST(request, { params }) {
       );
     }
 
-    // 3. Toggle Favorite Status
     const isFavorited = user.favorites?.some(
-      (favId) => favId.toString() === productId
+      (favId) => String(favId) === String(productId)
     );
 
     const updateQuery = isFavorited
       ? { $pull: { favorites: productId } }
       : { $addToSet: { favorites: productId } };
 
-    await User.findByIdAndUpdate(userId, updateQuery);
+    await User.updateOne({ _id: currentUser.id }, updateQuery);
 
-    return NextResponse.json(
-      {
-        success: true,
-        isFavorited: !isFavorited,
-        message: !isFavorited ? 'Added to favorites' : 'Removed from favorites',
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({
+      success: true,
+      isFavorited: !isFavorited,
+      message: !isFavorited ? 'Added to favorites' : 'Removed from favorites',
+    });
   } catch (error) {
     console.error('Error toggling favorite:', error);
     return NextResponse.json(

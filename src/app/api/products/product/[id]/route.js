@@ -2,25 +2,15 @@ import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
 import connectDB from '@/lib/db';
 import Product from '@/models/product.model';
+import User from '@/models/user.model';
 import { authorizeRequest } from '@/lib/middleware';
 
 export async function GET(request, { params }) {
   try {
-    const { user: decoded } = authorizeRequest(request);
-    const refreshToken = request.cookies.get('refreshToken')?.value;
-
-    if (!decoded && !refreshToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized: Please log in to view listing details' },
-        { status: 401 }
-      );
-    }
-
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = await params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return NextResponse.json({ error: 'Invalid product ID' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Invalid product ID' }, { status: 400 });
     }
 
     await connectDB();
@@ -30,30 +20,39 @@ export async function GET(request, { params }) {
       .lean();
 
     if (!product) {
-      return NextResponse.json({ error: 'Product listing not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Product listing not found' }, { status: 404 });
     }
 
-    // Only allow viewing unapproved products to the owner or admins
+    // Approved listings are public. Pending/rejected listings require
+    // authenticated ownership or admin authorization.
     if (product.verify !== 'APPROVED') {
-      // Determine owner match
-      const isOwner = decoded && String(decoded.id || decoded._id) === String(product.seller?._id || product.seller);
+      const { user: decoded, errorResponse } = authorizeRequest(request);
 
-      // Check admin role by querying DB when we have a decoded token
-      let isAdmin = false;
-      if (decoded) {
-        const User = (await import('@/models/user.model')).default;
-        const fullUser = await User.findById(decoded.id || decoded._id).select('role').lean();
-        isAdmin = fullUser && fullUser.role === 'admin';
+      if (errorResponse) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
 
-      if (!isOwner && !isAdmin) {
-        return NextResponse.json({ error: 'Product not available' }, { status: 403 });
+      const userId = decoded.id;
+      const isOwner = String(userId) === String(product.seller?._id || product.seller);
+
+      if (!isOwner) {
+        const fullUser = await User.findById(userId).select('role').lean();
+
+        if (!fullUser || fullUser.role !== 'admin') {
+          return NextResponse.json(
+            { success: false, error: 'Product not available' },
+            { status: 403 }
+          );
+        }
       }
     }
 
     return NextResponse.json({ success: true, product }, { status: 200 });
   } catch (error) {
     console.error('Error fetching product detail:', error);
-    return NextResponse.json({ error: 'Failed to fetch product details' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to fetch product details' },
+      { status: 500 }
+    );
   }
 }

@@ -45,7 +45,7 @@ export default function Loading() {
 
       {/* Footer Status Line */}
       <footer className="relative z-10 w-full max-w-6xl mx-auto flex items-center justify-between text-[10px] sm:text-xs font-mono text-neutral-600">
-        <span>I'm handling</span>
+        <span>I&apos;m handling</span>
         <span>the Situation</span>
       </footer>
 
